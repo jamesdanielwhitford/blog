@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>My Blog</title>
+    <style>
+      /* Center the text */
+      .center {
+        text-align: center;
+      }
+      
+      /* Style the paragraph */
+      .paragraph {
+        width: 50%;
+        margin: auto;
+        padding: 300px 10px 10px 10px;
+        display: inline-block;
+        text-align: justify;
+        text-justify: inter-word;
+        font-size: 150%;
+      }
+      
+      /* Style the menu */
+      .menu {
+        list-style-type: none;
+        margin: 20px;
+        padding: 0;
+        text-align: center;
+      }
+      
+      /* Style the menu links */
+      .menu li {
+        display: inline;
+        /* list-style-type: none; */
+        margin: 0 20px 0 0;
+        padding: 0;
+        text-align: center;
+      }
+      
+      .menu li a {
+        text-decoration: none;
+        color: rgb(0, 0, 0);
+        font-size: 150%;
+        text-decoration: underline;
+        color: black;
+      }
+      
+      hr {
+        margin: auto;
+        width: 66.67%;
+        }
+    </style>
+  </head>
+  <body>
+    <div class="center">
+      <div class="paragraph">
+        <p>This blog is dedicated to sharing my thoughts and experiences with the world. I hope you find it informative and enjoyable!</p>
+      </div>
+      <hr>
+      <ul class="menu">
+        <li><a href="locations.html" tabindex="0">Locations</a></li>
+        <li><a href="pottery.html" tabindex="0">Pottery</a></li>
+        <li><a href="writing.html" tabindex="0">Writing</a></li>
+        <li><a href="music.html" tabindex="0">Music</a></li>
+        <li><a href="contact.html" tabindex="0">Contact</a></li>
+      </ul>
+    </div>
+    <script>
+      const menuItems = document.querySelectorAll('.menu li a');
+      let currentItem = 0;
+
+      menuItems[currentItem].focus();
+
+      menuItems.forEach((item, index) => {
+        item.addEventListener('keydown', (event) => {
+          if (event.key === 'Tab') {
+            event.preventDefault();
+            currentItem = (index + 1) % menuItems.length;
+            menuItems[currentItem].focus();
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

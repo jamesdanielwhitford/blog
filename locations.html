@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    .video-container {
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .video-container video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+    }
+
+    .video-container video:first-child {
+      opacity: 1;
+    }
+
+    .back-button {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 1;
+      font-size: 20px;
+      padding: 10px;
+      background-color: white;
+      border: 1px solid black;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <button class="back-button" onclick="goBack()">Back to Menu</button>
+  <div class="video-container">
+    <video src="video1.mp4" muted autoplay></video>
+    <video src="video2.mp4" muted></video>
+    <video src="video3.mp4" muted></video>
+  </div>
+</body>
+<script>
+  const videos = document.querySelectorAll('.video-container video');
+  let currentVideoIndex = 0;
+
+  function showNextVideo() {
+    // Pause the current video
+    videos[currentVideoIndex].pause();
+
+    // Hide the current video
+    videos[currentVideoIndex].style.opacity = 0;
+
+    // Move to the next video
+    currentVideoIndex++;
+    if (currentVideoIndex >= videos.length) {
+      currentVideoIndex = 0;
+    }
+
+    // Show the next video
+    videos[currentVideoIndex].style.opacity = 1;
+
+    // Play the next video
+    videos[currentVideoIndex].play();
+  }
+
+  // Listen for scroll events
+  let lastScrollTime = 0;
+  window.addEventListener('scroll', () => {
+    const now = Date.now();
+    if (now - lastScrollTime < 1000) {
+      // Ignore scroll events that occur less than 1 second apart
+      return;
+    }
+
+    // Show the next video
+    showNextVideo();
+
+    // Scroll to the top of the next video
+    const nextVideoTop = videos[currentVideoIndex].offsetTop;
+    window.scrollTo({
+      top: nextVideoTop,
+      behavior: 'smooth'
+    });
+
+    // Update the last scroll time
+    lastScrollTime = now;
+  });
+
+  function goBack() {
+    window.location.href = "index.html";
+  }
+</script>
+</html>
