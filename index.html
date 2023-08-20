@@ -5,38 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <style>
-        body {
-            width: 100vw;
-            height: 100vh;
-            margin: 0;
-            background-color: rgb(255, 255, 255);
-        }
 
-        .container{
-            scroll-behavior: smooth;
-            width: 100%;
-            height: 100%;
-            background-color: rgb(255, 255, 255);
-            scroll-snap-type: y mandatory;
-            overflow-y: scroll;
-        }
-
-        section{
-            display: flex;
-            justify-content: center;
-            align-content: center;
-            width: 100vw;
-            height: 100vh;
-            scroll-snap-align: start;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <section>
+        <section id="cover">
             <h1>Cover</h1>
         </section>
-        <section>
+        <section id="table">
             <h1 id="menu">introduction</h1>
             <ul>
                 <li><a href="#one">Locations</a></li>
@@ -46,44 +23,44 @@
                 <li><a href="#five">Contact</a></li>
             </ul>
         </section>
-        <section>
+        <section class="chapter">
             <h1 id="one">Locations</h1>
             <a href="#menu">Menu</a>
         </section>
-        <section>
+        <section class="item">
             <h1>Locations Item 1</h1>
         </section>
-        <section>
+        <section class="item">
             <h1>Locations Item 2</h1>
         </section>
-        <section>
+        <section class="chapter">
             <h1 id="two">Pottery</h1>
             <a href="#menu">Menu</a>
         </section>
-        <section>
+        <section class="item">
             <h1>Pottery Item 1</h1>
         </section>
-        <section>
+        <section class="item">
             <h1>Pottery Item 2</h1>
         </section>
-        <section>
+        <section class="chapter">
             <h1 id="three">Writing</h1>
             <a href="#menu">Menu</a>
         </section>
-        <section>
+        <section class="item">
             <h1>Writing Item 1</h1>
         </section>
-        <section>
+        <section class="item">
             <h1>Writing Item 2</h1>
         </section>
-        <section>
+        <section class="chapter">
             <h1 id="four">Music</h1>
             <a href="#menu">Menu</a>
         </section>
-        <section>
+        <section class="item">
             <h1>Music Item 1</h1>
         </section>
-        <section>
+        <section class="item">
             <h1>Music Item 2</h1>
         </section> 
     </div>
