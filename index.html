@@ -1,68 +1,292 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <style>
+        .container {
+            height: 100vh;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+        }
 
+        section {
+            height: 100vh;
+            overflow: auto;
+            scroll-snap-align: start;
+        }
+
+        hr {
+            margin: auto;
+            width: 66.67%;
+        }
+
+        #center {
+            text-align: center;
+        }
+
+        .paragraph {
+            width: 50%;
+            margin: auto;
+            padding: 300px 10px 10px 10px;
+            display: inline-block;
+            text-align: justify;
+            text-justify: inter-word;
+            font-size: 150%;
+        }
+
+        .sticky-nav {
+    position: sticky;
+    top: 0;
+    background-color: white;
+    z-index: 1000;
+    visibility: hidden; /* Initially hide the nav */
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    height: 60px; /* Set a specific height */
+    display: flex; /* Use flexbox */
+    align-items: center; /* Center content vertically */
+    justify-content: center; /* Center content horizontally */
+}
+
+
+        .visible-nav {
+            visibility: visible; /* Show the nav */
+            opacity: 1;
+        }
+
+        .menu {
+            list-style-type: none;
+            margin: 20px;
+            padding: 0;
+            text-align: center;
+        }
+
+        .menu li {
+            display: inline;
+            margin: 0 20px 0 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        .menu li a {
+            text-decoration: none;
+            color: rgb(0, 0, 0);
+            font-size: 150%;
+            text-decoration: underline;
+            color: black;
+        }
+
+        .menu-link {
+            text-decoration: none;
+            color: black;
+            font-size: 150%;
+            text-decoration: underline;
+            margin: 20px;
+        }
+
+        .chapter {
+            height: 100vh;
+            overflow: auto;
+            scroll-snap-align: start;
+            padding-top: 60px; /* Push the content down */
+            margin-top: -60px; /* Offset the added padding to maintain visual spacing */
+        }
+
+        .item {
+            height: 100vh;
+            overflow: auto;
+            scroll-snap-align: start;
+            padding-top: 60px; /* Push the content down */
+            margin-top: -60px; /* Offset the added padding to maintain visual spacing */
+        }
+
+        .media-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 70vh; /* Adjust as needed */
+        }
+
+        .media-container img,
+        .media-container video,
+        .media-container audio {
+            max-width: 100%;
+            max-height: 70vh;
+        }
+
+        .text-content {
+            padding: 5% 10%;
+            font-size: 120%;
+            text-align: justify;
+        }
+
+
+        .chapter h1 {
+    margin-top: 10vh; /* Adjust the top margin to push the heading closer to the center */
+    margin-bottom: 20px;
+    font-size: 2.5em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.chapter-intro {
+    width: 60%;
+    margin: 0 auto;
+    font-size: 1.2em;
+    text-align: justify;
+    line-height: 1.5;
+    padding-top: 50px;
+    padding-bottom: 40px;
+}
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <section id="cover">
-            <h1>Cover</h1>
-        </section>
-        <section id="table">
-            <h1 id="menu">introduction</h1>
-            <ul>
-                <li><a href="#one">Locations</a></li>
-                <li><a href="#two">Pottery</a></li>
-                <li><a href="#three">Writing</a></li>
-                <li><a href="#four">Music</a></li>
-                <li><a href="#five">Contact</a></li>
+    <div class="container" id="center">
+        <section id="landing-section">
+            <p class="paragraph">This blog is dedicated to sharing my thoughts and experiences with the world. I hope you find it informative and enjoyable!</p>
+            <hr>
+            <ul class="menu">
+                <li><a href="#one" tabindex="0">Locations</a></li>
+                <li><a href="#two" tabindex="0">Pottery</a></li>
+                <li><a href="#three" tabindex="0">Writing</a></li>
+                <li><a href="#four" tabindex="0">Music</a></li>
+                <li><a href="#five" tabindex="0">Contact</a></li>
             </ul>
         </section>
-        <section class="chapter">
-            <h1 id="one">Locations</h1>
-            <a href="#menu">Menu</a>
+        <ul class="menu sticky-nav" id="main-nav">
+            <li><a href="#one" tabindex="0">Locations</a></li>
+            <li><a href="#two" tabindex="0">Pottery</a></li>
+            <li><a href="#three" tabindex="0">Writing</a></li>
+            <li><a href="#four" tabindex="0">Music</a></li>
+            <li><a href="#five" tabindex="0">Contact</a></li>
+        </ul>
+        <!-- Locations Chapter -->
+        <section class="chapter" id="one">
+            <h1>Locations</h1>
+            <p class="chapter-intro">Discover various locations around the world through my eyes. From bustling cities to serene countrysides, join me on this journey of exploration.</p>
         </section>
         <section class="item">
-            <h1>Locations Item 1</h1>
+            <div class="media-container">
+                <!-- Example: Image -->
+                <img src="path_to_your_image.jpg" alt="Description of the image">
+            </div>
+            <div class="description">
+                <p>This is a description of the media content.</p>
+            </div>
         </section>
         <section class="item">
-            <h1>Locations Item 2</h1>
+            <div class="media-container">
+                <!-- Example: Video -->
+                <video controls>
+                    <source src="path_to_your_video.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+            <div class="description">
+                <p>This is a description of the media content.</p>
+            </div>
         </section>
-        <section class="chapter">
-            <h1 id="two">Pottery</h1>
-            <a href="#menu">Menu</a>
-        </section>
-        <section class="item">
-            <h1>Pottery Item 1</h1>
-        </section>
-        <section class="item">
-            <h1>Pottery Item 2</h1>
-        </section>
-        <section class="chapter">
-            <h1 id="three">Writing</h1>
-            <a href="#menu">Menu</a>
-        </section>
-        <section class="item">
-            <h1>Writing Item 1</h1>
+
+        <section class="chapter" id="two">
+            <h1>Pottery</h1>
+            <p class="chapter-intro">Dive into the world of pottery and ceramics. Learn about the intricate art of molding clay and the stories each piece holds within its form.</p>
         </section>
         <section class="item">
-            <h1>Writing Item 2</h1>
+            <div class="media-container">
+                <!-- Example: Image -->
+                <img src="path_to_your_pottery_image.jpg" alt="Description of the pottery">
+            </div>
+            <div class="description">
+                <p>This is a description of the pottery.</p>
+            </div>
         </section>
-        <section class="chapter">
-            <h1 id="four">Music</h1>
-            <a href="#menu">Menu</a>
+
+        <!-- Writing Chapter -->
+        <section class="chapter" id="three">
+            <h1>Writing</h1>
+            <p class="chapter-intro">From short stories to reflective essays, explore the depths of my thoughts and the tales I weave with words. Each piece is a journey in itself.</p>
+        </section>        
+        <section class="item">
+            <div class="text-content">
+                This is a sample text content for the writing chapter. You can replace this with your actual content.
+            </div>
+        </section>
+
+        <!-- Music Chapter -->
+        <section class="chapter" id="four">
+            <h1>Music</h1>
+            <p class="chapter-intro">Music is the universal language of the soul. Delve into the rhythms, melodies, and harmonies that have inspired and moved generations.</p>
         </section>
         <section class="item">
-            <h1>Music Item 1</h1>
+            <div class="media-container">
+                <!-- Example: Audio -->
+                <audio controls>
+                    <source src="path_to_your_music.mp3" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </div>
+            <div class="description">
+                <p>This is a description of the music content.</p>
+            </div>
         </section>
         <section class="item">
-            <h1>Music Item 2</h1>
-        </section> 
+            <div class="media-container">
+                <!-- Example: Video -->
+                <video controls>
+                    <source src="path_to_your_music_video.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+            <div class="description">
+                <p>This is a description of the music video.</p>
+            </div>
+        </section>
+
+        <!-- Contact Chapter -->
+        <section class="chapter" id="five">
+            <h1>Contact</h1>
+            <p class="chapter-intro">Reach out for collaborations, inquiries, or just to share your thoughts. I'm always eager to connect with readers and fellow enthusiasts.</p>
+        </section>
     </div>
+    <script>
+const nav = document.getElementById('main-nav');
+const landingSection = document.getElementById('landing-section');
+const container = document.getElementById('center');
+const navLinks = document.querySelectorAll('#main-nav a');
+
+const locationsSection = document.getElementById('one');
+
+container.addEventListener('scroll', function() {
+    // Adjust the condition to check if the scrollTop is greater than or equal to the locationsSection's offsetTop minus the nav's offsetHeight
+    if (container.scrollTop >= (locationsSection.offsetTop - nav.offsetHeight)) {
+        nav.classList.add('visible-nav');
+    } else {
+        nav.classList.remove('visible-nav');
+    }
+});
+
+
+navLinks.forEach(link => {
+    link.addEventListener('click', function(event) {
+        event.preventDefault();
+        const targetId = this.getAttribute('href');
+        const targetElement = document.querySelector(targetId);
+        const navHeight = nav.offsetHeight;
+
+        // Adjust the scroll position
+        container.scrollTop = targetElement.offsetTop - navHeight;
+
+        // If you have any smooth scrolling library or functionality, you can integrate it here.
+    });
+});
+
+
+    </script>
 </body>
+
 </html>
