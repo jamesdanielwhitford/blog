@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <style>
+        /* Container and Sections */
         .container {
             height: 100vh;
             overflow-y: scroll;
@@ -18,130 +19,149 @@
             scroll-snap-align: start;
         }
 
-        hr {
-            margin: auto;
-            width: 66.67%;
-        }
-
+        /* Text Formatting */
         #center {
             text-align: center;
         }
 
+        .paragraph, .chapter-intro, .text-content {
+    width: 50%;
+    margin: 0 auto;
+    text-align: left;
+    font-size: 1.4em; /* Increased font size for better readability */
+}
+
         .paragraph {
-            width: 50%;
-            margin: auto;
             padding: 300px 10px 10px 10px;
             display: inline-block;
             text-align: justify;
             text-justify: inter-word;
-            font-size: 150%;
-        }
-
-        .sticky-nav {
-    position: sticky;
-    top: 0;
-    background-color: white;
-    z-index: 1000;
-    visibility: hidden; /* Initially hide the nav */
-    opacity: 0;
-    transition: opacity 0.5s ease-in-out;
-    height: 60px; /* Set a specific height */
-    display: flex; /* Use flexbox */
-    align-items: center; /* Center content vertically */
-    justify-content: center; /* Center content horizontally */
-}
-
-
-        .visible-nav {
-            visibility: visible; /* Show the nav */
-            opacity: 1;
-        }
-
-        .menu {
-            list-style-type: none;
-            margin: 20px;
-            padding: 0;
-            text-align: center;
-        }
-
-        .menu li {
-            display: inline;
-            margin: 0 20px 0 0;
-            padding: 0;
-            text-align: center;
-        }
-
-        .menu li a {
-            text-decoration: none;
-            color: rgb(0, 0, 0);
-            font-size: 150%;
-            text-decoration: underline;
-            color: black;
-        }
-
-        .menu-link {
-            text-decoration: none;
-            color: black;
-            font-size: 150%;
-            text-decoration: underline;
-            margin: 20px;
-        }
-
-        .chapter {
-            height: 100vh;
-            overflow: auto;
-            scroll-snap-align: start;
-            padding-top: 60px; /* Push the content down */
-            margin-top: -60px; /* Offset the added padding to maintain visual spacing */
-        }
-
-        .item {
-            height: 100vh;
-            overflow: auto;
-            scroll-snap-align: start;
-            padding-top: 60px; /* Push the content down */
-            margin-top: -60px; /* Offset the added padding to maintain visual spacing */
-        }
-
-        .media-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 70vh; /* Adjust as needed */
-        }
-
-        .media-container img,
-        .media-container video,
-        .media-container audio {
-            max-width: 100%;
-            max-height: 70vh;
         }
 
         .text-content {
             padding: 5% 10%;
-            font-size: 120%;
-            text-align: justify;
         }
 
+        /* Navigation */
+        .sticky-nav {
+            position: sticky;
+            top: 0;
+            background-color: white;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 0.5px solid #000;
+            font-weight: bold;
+        }
 
+        .visible-nav {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .menu {
+    list-style-type: none;
+    margin: 20px;
+    padding: 0;
+    text-align: center;
+}
+
+.menu li {
+    display: inline;
+    margin-right: 20px;
+}
+
+.menu li a {
+    text-decoration: none;
+    color: black;
+    font-size: 1.3em; /* Matching the font size of sticky nav */
+    text-decoration: underline;
+    font-weight: bold; /* Matching the font weight of sticky nav */
+}
+
+.menu li a:hover {
+    color: #777; /* Matching the hover color of sticky nav */
+}
+
+
+        /* Media and Descriptions */
+        .media-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 70vh;
+        }
+
+        .media-container img, .media-container video, .media-container audio {
+            max-width: 100%;
+            max-height: 70vh;
+        }
+
+        .description {
+    width: 50%;
+    margin: 20px auto 0;
+    text-align: left;
+    font-size: 1.4em; /* Increased font size for descriptions */
+}
+
+        /* Headings and Chapters */
         .chapter h1 {
-    margin-top: 10vh; /* Adjust the top margin to push the heading closer to the center */
-    margin-bottom: 20px;
-    font-size: 2.5em;
+    margin-top: 10vh;
+    margin-bottom: 40px; /* Increased spacing between heading and paragraph */
+    font-size: 2.8em; /* Slightly larger for better visibility */
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 2px;
 }
 
-.chapter-intro {
-    width: 60%;
-    margin: 0 auto;
-    font-size: 1.2em;
-    text-align: justify;
-    line-height: 1.5;
-    padding-top: 50px;
-    padding-bottom: 40px;
+        .chapter, .item {
+            height: 100vh;
+            overflow: auto;
+            scroll-snap-align: start;
+            padding-top: 60px;
+            margin-top: -60px;
+        }
+
+        /* Spacing */
+        .item + .item {
+            margin-top: 50px;
+        }
+
+        .chapter + .chapter {
+            margin-top: 100px;
+        }
+
+        hr {
+            margin: auto;
+            width: 46.67%;
+        }
+
+        /* Media Queries */
+        @media screen and (min-width: 1200px) {
+            .chapter-intro, .paragraph, .text-content {
+                width: 40%;
+            }
+        }
+
+ 
+
+        #landing-section .paragraph {
+    text-align: left;
+    font-size: 1.4em; /* Matching the font size of other paragraphs */
+    /* padding: 50px 10px; Adjusted padding to be consistent with other paragraphs */
+    padding-top: 30vh; /* Adjust this value to move the content up or down */
+    padding-bottom: 10px;
 }
+
+.active-link {
+    color: #ff4500; /* You can choose any color or style you prefer */
+}
+
     </style>
 </head>
 
