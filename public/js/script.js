@@ -18,9 +18,11 @@ const firebaseConfig = {
   function displayBlogPosts() {
     const timelineSection = document.getElementById('timeline');
   
-    db.collection('posts').orderBy('date', 'desc').get().then((querySnapshot) => {
+    db.collection('posts').orderBy('date', 'desc').get()
+    .then((querySnapshot) => {
       querySnapshot.forEach((doc) => {
         const post = doc.data();
+        console.log('Retrieved post:', post);
         const postElement = document.createElement('div');
         postElement.classList.add('post');
         postElement.innerHTML = `
@@ -35,8 +37,11 @@ const firebaseConfig = {
         `;
         timelineSection.appendChild(postElement);
       });
+    })
+    .catch((error) => {
+        console.error('Error fetching blog posts:', error);
     });
-  }
+}
   
   // Function to handle user authentication state changes
   function handleAuthStateChanged(user) {
