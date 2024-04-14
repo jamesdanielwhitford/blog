@@ -17,31 +17,36 @@ const firebaseConfig = {
   // Function to retrieve and display blog posts
   function displayBlogPosts() {
     const timelineSection = document.getElementById('timeline');
+    console.log('Fetching blog posts...');
   
     db.collection('posts').orderBy('date', 'desc').get()
-    .then((querySnapshot) => {
-      querySnapshot.forEach((doc) => {
-        const post = doc.data();
-        console.log('Retrieved post:', post);
-        const postElement = document.createElement('div');
-        postElement.classList.add('post');
-        postElement.innerHTML = `
-          <h2>${post.title}</h2>
-          <p>${post.description}</p>
-          <p>Date: ${post.date.toDate().toLocaleDateString()}</p>
-          <div class="tags">${post.tags.map(tag => `<span>${tag}</span>`).join('')}</div>
-          <div class="images">${post.imageUrls.map(url => `<img src="${url}" alt="Post Image">`).join('')}</div>
-          <div class="videos">${post.videoUrls.map(url => `<iframe src="${url}" frameborder="0" allowfullscreen></iframe>`).join('')}</div>
-          <button class="view-full-size">View Full Size</button>
-          <button class="share">Share</button>
-        `;
-        timelineSection.appendChild(postElement);
-      });
-    })
-    .catch((error) => {
+      .then((querySnapshot) => {
+        console.log('Query snapshot:', querySnapshot);
+        console.log('Number of posts:', querySnapshot.size);
+  
+        querySnapshot.forEach((doc) => {
+          const post = doc.data();
+          console.log('Retrieved post:', post);
+  
+          const postElement = document.createElement('div');
+          postElement.classList.add('post');
+          postElement.innerHTML = `
+            <h2>${post.title}</h2>
+            <p>${post.description}</p>
+            <p>Date: ${post.date.toDate().toLocaleDateString()}</p>
+            <div class="tags">${post.tags.map(tag => `<span>${tag}</span>`).join('')}</div>
+            <div class="images">${post.imageUrls.map(url => `<img src="${url}" alt="Post Image">`).join('')}</div>
+            <div class="videos">${post.videoUrls.map(url => `<iframe src="${url}" frameborder="0" allowfullscreen></iframe>`).join('')}</div>
+            <button class="view-full-size">View Full Size</button>
+            <button class="share">Share</button>
+          `;
+          timelineSection.appendChild(postElement);
+        });
+      })
+      .catch((error) => {
         console.error('Error fetching blog posts:', error);
-    });
-}
+      });
+  }
   
   // Function to handle user authentication state changes
   function handleAuthStateChanged(user) {
