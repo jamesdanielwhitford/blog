@@ -21,8 +21,15 @@ const AdminView = ({ user }) => {
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    const unsubscribe = firestore.collection('posts').onSnapshot((snapshot) => {
-      const postsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    const unsubscribe = firestore.collection('posts').onSnapshot(async (snapshot) => {
+      const postsData = await Promise.all(
+        snapshot.docs.map(async (doc) => {
+          const post = { id: doc.id, ...doc.data() };
+          const uploadsSnapshot = await doc.ref.collection('uploads').get();
+          post.uploads = uploadsSnapshot.docs.map((doc) => doc.data());
+          return post;
+        })
+      );
       setPosts(postsData);
       setLoading(false);
     });
@@ -81,7 +88,7 @@ const AdminView = ({ user }) => {
     setLoading(true);
     try {
       const postDate = new Date(formData.date);
-      const postId = `${postDate.getFullYear()}-${postDate.getMonth() + 1}-${postDate.getDate()}`;
+      const postId = `${postDate.getFullYear()}-${postDate.getMonth() + 1}-${postDate.getDate()}-${postDate.getTime()}`;
 
       const postRef = firestore.collection('posts').doc(postId);
       const postDoc = await postRef.get();
@@ -97,27 +104,26 @@ const AdminView = ({ user }) => {
         try {
           await storageRef.put(file);
           const downloadUrl = await storageRef.getDownloadURL();
-          return downloadUrl;
+          const uploadData = {
+            url: downloadUrl,
+            tags: formData.tags,
+          };
+          const uploadRef = await postRef.collection('uploads').add(uploadData);
+          return { id: uploadRef.id, ...uploadData };
         } catch (error) {
           console.error('Error uploading file:', error);
           throw error;
         }
       });
 
-      const uploadUrls = await Promise.all(uploads);
-      const imageUrls = uploadUrls.filter(
-        (url) => url.includes('.jpg') || url.includes('.png') || url.includes('.gif')
-      );
-      const videoUrls = uploadUrls.filter(
-        (url) => url.includes('.mp4') || url.includes('.avi') || url.includes('.mov')
-      );
+      const uploadedFiles = await Promise.all(uploads);
+
+      const coverImage = uploadedFiles.length > 0 ? uploadedFiles[0].url : null;
 
       const postData = {
         description: formData.description || existingPost.description || '',
         date: postDate,
-        imageUrls: [...(existingPost.imageUrls || []), ...imageUrls],
-        videoUrls: [...(existingPost.videoUrls || []), ...videoUrls],
-        tags: [...new Set([...(existingPost.tags || []), ...formData.tags])],
+        coverImage: coverImage,
         isArchived: existingPost.isArchived || false,
       };
 
@@ -251,7 +257,7 @@ const AdminView = ({ user }) => {
           <div key={post.id}>
             <h2>{post.description}</h2>
             <p>{post.date.toDate().toLocaleString()}</p>
-            <p>Tags: {post.tags.join(', ')}</p>
+            <p>Tags: {post.tags ? post.tags.join(', ') : ''}</p>
             <button onClick={() => handleEdit(post.id)}>Edit</button>
             <button onClick={() => handleArchive(post.id, post.isArchived || false)}>
               {post.isArchived ? 'Unarchive' : 'Archive'}

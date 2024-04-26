@@ -7,7 +7,11 @@ import { auth } from './firebase';
 import GoogleSignInButton from './components/GoogleSignInButton';
 
 function App() {
-  const [selectedTag, setSelectedTag] = useState(null);
+  const [selectedTags, setSelectedTags] = useState(['Philosophy', 'Design', 'Gardens', 'Ceramics', 'Technology']);
+
+  useEffect(() => {
+    console.log('Selected tags:', selectedTags); // Add this line for debugging
+  }, [selectedTags]);  
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -55,8 +59,8 @@ function App() {
             path="/"
             element={
               <>
-                <Navbar selectedTag={selectedTag} setSelectedTag={setSelectedTag} />
-                <Timeline selectedTag={selectedTag} />
+                <Navbar selectedTags={selectedTags} setSelectedTags={setSelectedTags} />
+                <Timeline selectedTags={selectedTags} />
               </>
             }
           />
