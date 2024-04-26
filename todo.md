@@ -1,26 +1,35 @@
 # TODO
 
-## High Priority
-
-- [ ] Change schema to posts rather than days
-- [ ] Add "cover" tag to schema
+## Project modal
 - [ ] Add project tag to schema 
-- [ ] Timeline shows only covers for posts
-- [ ] Clicking a post displays all media from post
-- [ ] clicking post project name opens a timeline of that project
+- [ ] clicking post project name opens a timeline modal of that project
+- [ ] Esc key top left
 
-1. Modal for upload
-   - [ ] Tag selection
-   - [ ] Multi-image/video upload
-   - [ ] Able to add more images or videos in edit view
+## Modal for upload
+   - [ ] Modal
+   - [ ] Upload description
+   - [ ] Upload tags
+   - [ ] Project association
+   - [ ] Cover image select
+   - [ ] Horizontal media add
+   - [ ] caption add for each media
    - [ ] Able to remove images or videos in edit view
+   - [ ] Esc key top left
 
-2. Fix filter list to handle multiple tags
+## Edit modal
+- [ ] Mimic upload modal 
+- [ ] Upload modal has delete all and archive all or delete individual or archive individual, or edit caption or edit description
+- [ ] Admin timeline view now only has edit button not archive etc
 
-3. Scroll up and down button
+## Controls
+- [ ] Scroll up and down button
 
 ## Completed
 
 - [x] Separate user and admin view
 - [x] Add new images or videos with same datetime to the same post
 - [x] Organize storage by datetime folders
+- [x] Change schema to posts rather than days
+- [X] Add "cover" tag to schema
+- [X] Timeline shows only covers for posts
+- [X] Clicking a post displays all media from post
