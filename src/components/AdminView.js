@@ -15,6 +15,7 @@ const AdminView = ({ user }) => {
     videoUrls: [],
     tags: [],
     isArchived: false,
+    project: '',
   });
   const [editPostId, setEditPostId] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
@@ -40,21 +41,22 @@ const AdminView = ({ user }) => {
   const handleFormChange = (e) => {
     const { name, value } = e.target;
 
-    if (name === 'tags') {
-      const newTags = value.split(',').map((tag) => tag.trim());
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      [name]: value,
+    }));
+  };
+
+  const handleTagChange = (tag) => {
+    if (formData.tags.includes(tag)) {
       setFormData((prevFormData) => ({
         ...prevFormData,
-        tags: newTags,
-      }));
-    } else if (name === 'date') {
-      setFormData((prevFormData) => ({
-        ...prevFormData,
-        [name]: new Date(value),
+        tags: prevFormData.tags.filter((t) => t !== tag),
       }));
     } else {
       setFormData((prevFormData) => ({
         ...prevFormData,
-        [name]: value,
+        tags: [...prevFormData.tags, tag],
       }));
     }
   };
@@ -125,6 +127,7 @@ const AdminView = ({ user }) => {
         date: postDate,
         coverImage: coverImage,
         isArchived: existingPost.isArchived || false,
+        project: formData.project,
       };
 
       await postRef.set(postData);
@@ -137,6 +140,7 @@ const AdminView = ({ user }) => {
         videoUrls: [],
         tags: [],
         isArchived: false,
+        project: '',
       });
     } catch (error) {
       setErrorMessage('An error occurred. Please try again.');
@@ -158,6 +162,7 @@ const AdminView = ({ user }) => {
         videoUrls: post.videoUrls,
         tags: post.tags,
         isArchived: post.isArchived || false,
+        project: post.project || '',
       });
     }
   };
@@ -182,7 +187,16 @@ const AdminView = ({ user }) => {
       setLoading(true);
       setErrorMessage('');
       try {
+        // Delete the post document from Firestore
         await firestore.collection('posts').doc(postId).delete();
+  
+        // Delete the corresponding folder in Firebase Storage
+        const storageRef = firebase.storage().ref(postId);
+        const files = await storageRef.listAll();
+        const deletionPromises = files.items.map((file) => file.delete());
+        await Promise.all(deletionPromises);
+        await storageRef.delete();
+  
         setSuccessMessage('Post deleted successfully.');
       } catch (error) {
         setErrorMessage('An error occurred. Please try again.');
@@ -241,12 +255,26 @@ const AdminView = ({ user }) => {
             accept="video/*"
           />
         </div>
+        <div>
+          <label>Tags:</label>
+          {['Philosophy', 'Gardens', 'Ceramics', 'Human Computer Interaction'].map((tag) => (
+            <div key={tag}>
+              <input
+                type="checkbox"
+                id={tag}
+                checked={formData.tags.includes(tag)}
+                onChange={() => handleTagChange(tag)}
+              />
+              <label htmlFor={tag}>{tag}</label>
+            </div>
+          ))}
+        </div>
         <input
           type="text"
-          name="tags"
-          value={formData.tags.join(', ')}
+          name="project"
+          value={formData.project}
           onChange={handleFormChange}
-          placeholder="Tags (comma-separated)"
+          placeholder="Project"
         />
         <button type="submit" disabled={loading}>
           {loading ? 'Saving...' : editPostId ? 'Update Post' : 'Create Post'}
@@ -258,6 +286,7 @@ const AdminView = ({ user }) => {
             <h2>{post.description}</h2>
             <p>{post.date.toDate().toLocaleString()}</p>
             <p>Tags: {post.tags ? post.tags.join(', ') : ''}</p>
+            <p>Project: {post.project}</p>
             <button onClick={() => handleEdit(post.id)}>Edit</button>
             <button onClick={() => handleArchive(post.id, post.isArchived || false)}>
               {post.isArchived ? 'Unarchive' : 'Archive'}

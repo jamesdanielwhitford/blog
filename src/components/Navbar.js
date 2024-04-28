@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 const Navbar = ({ selectedTags, setSelectedTags }) => {
-  const tags = ['Philosophy', 'Design', 'Gardens', 'Ceramics', 'Technology'];
+  const tags = ['Philosophy', 'Gardens', 'Ceramics', 'Human Computer Interaction'];
 
   const handleTagClick = (tag) => {
     console.log('Clicked tag:', tag);

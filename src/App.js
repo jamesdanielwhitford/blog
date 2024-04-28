@@ -7,7 +7,7 @@ import { auth } from './firebase';
 import GoogleSignInButton from './components/GoogleSignInButton';
 
 function App() {
-  const [selectedTags, setSelectedTags] = useState(['Philosophy', 'Design', 'Gardens', 'Ceramics', 'Technology']);
+  const [selectedTags, setSelectedTags] = useState(['Philosophy', 'Gardens', 'Ceramics', 'Human Computer Interaction']);
 
   useEffect(() => {
     console.log('Selected tags:', selectedTags); // Add this line for debugging
