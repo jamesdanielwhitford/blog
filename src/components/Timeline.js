@@ -1,13 +1,16 @@
 import { firestore } from '../firebase';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { TwitterShareButton } from 'react-share';
 import Modal from 'react-modal';
 import '../Timeline.css';
+
+Modal.setAppElement('#root'); // Set the app root element for accessibility
 
 const Timeline = ({ selectedTags }) => {
   const [posts, setPosts] = useState([]);
   const [selectedPost, setSelectedPost] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const modalRef = useRef(null);
 
   useEffect(() => {
     const unsubscribe = firestore
@@ -44,33 +47,53 @@ const Timeline = ({ selectedTags }) => {
     setIsModalOpen(false);
   };
 
+  const scrollModalToTop = () => {
+    if (modalRef.current) {
+      modalRef.current.scrollTop = 0;
+    }
+  };
+
+  useEffect(() => {
+    if (isModalOpen) {
+      scrollModalToTop();
+    }
+  }, [isModalOpen]);
+
   return (
     <div>
-    {filteredPosts.map((post) => (
-      <div key={post.id} className="post-container">
-        <div className="post">
-          {post.coverImage && (
-            <img
-              src={post.coverImage}
-              alt="Cover"
-              onClick={() => handlePostClick(post)}
-            />
-          )}
-          <h2>{post.description}</h2>
-          <p>{post.date.toDate().toLocaleString()}</p>
-          <button onClick={() => handlePostClick(post)}>View More</button>
-          <TwitterShareButton
-            url={window.location.href}
-            title={post.description}
-            hashtags={post.uploads.flatMap((upload) => upload.tags)}
-          >
-            Share on Twitter
-          </TwitterShareButton>
+      {filteredPosts.map((post) => (
+        <div key={post.id} className="post-container">
+          <div className="post">
+            {post.coverImage && (
+              <img
+                src={post.coverImage}
+                alt="Cover"
+                onClick={() => handlePostClick(post)}
+              />
+            )}
+            <p>{post.date.toDate().toLocaleString()}</p>
+            <h2>{post.description}</h2>
+            <p>{post.project}</p>
+            <TwitterShareButton
+              url={window.location.href}
+              title={post.description}
+              hashtags={post.uploads.flatMap((upload) => upload.tags)}
+            >
+              Share on Twitter
+            </TwitterShareButton>
+            <button onClick={() => handlePostClick(post)}>View More</button>
+          </div>
         </div>
-      </div>
-    ))}
+      ))}
 
-      <Modal isOpen={isModalOpen} onRequestClose={closeModal}>
+      <Modal
+        isOpen={isModalOpen}
+        onRequestClose={closeModal}
+        className="modal"
+        overlayClassName="modal-overlay"
+        contentRef={(ref) => (modalRef.current = ref)}
+        bodyOpenClassName="modal-open"
+      >
         {selectedPost && (
           <div>
             <h2>{selectedPost.description}</h2>
