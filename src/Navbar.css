@@ -1,0 +1,25 @@
+.navbar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 20px;
+  }
+  
+  .tag {
+    margin: 10px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  .tag.selected {
+    color: #007bff;
+  }
+  
+  @media screen and (max-width: 600px) {
+    .navbar {
+      flex-direction: column;
+    }
+  }

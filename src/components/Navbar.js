@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import '../Navbar.css';
 
 const Navbar = ({ selectedTags, setSelectedTags }) => {
   const tags = ['Philosophy', 'Gardens', 'Ceramics', 'Human Computer Interaction'];
@@ -17,15 +18,16 @@ const Navbar = ({ selectedTags, setSelectedTags }) => {
   };
 
   return (
-    <nav>
+    <nav className='navbar'>
       {tags.map((tag) => (
-        <button
+        <div
           key={tag}
+          className={`tag ${selectedTags === tag ? 'selected' : ''}`}
           onClick={() => handleTagClick(tag)}
           style={{ fontWeight: selectedTags.includes(tag) ? 'bold' : 'normal' }}
         >
           {tag}
-        </button>
+        </div>
       ))}
     </nav>
   );

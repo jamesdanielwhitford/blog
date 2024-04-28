@@ -187,9 +187,6 @@ const AdminView = ({ user }) => {
       setLoading(true);
       setErrorMessage('');
       try {
-        // Delete the post document from Firestore
-        await firestore.collection('posts').doc(postId).delete();
-  
         // Delete the corresponding folder in Firebase Storage
         const storageRef = firebase.storage().ref(postId);
         const files = await storageRef.listAll();
@@ -197,10 +194,21 @@ const AdminView = ({ user }) => {
         await Promise.all(deletionPromises);
         await storageRef.delete();
   
+        // Delete the post document from Firestore
+        await firestore.collection('posts').doc(postId).delete();
+  
         setSuccessMessage('Post deleted successfully.');
       } catch (error) {
-        setErrorMessage('An error occurred. Please try again.');
-        console.error('Error deleting post:', error);
+        if (error.code === 'storage/object-not-found') {
+          console.warn('Storage folder not found. Deleting post document only.');
+        } else {
+          setErrorMessage('An error occurred. Please try again.');
+          console.error('Error deleting post:', error);
+        }
+  
+        // Delete the post document from Firestore even if the storage folder doesn't exist
+        await firestore.collection('posts').doc(postId).delete();
+        setSuccessMessage('Post deleted successfully.');
       }
       setLoading(false);
     }

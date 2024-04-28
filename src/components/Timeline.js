@@ -2,6 +2,7 @@ import { firestore } from '../firebase';
 import { useState, useEffect } from 'react';
 import { TwitterShareButton } from 'react-share';
 import Modal from 'react-modal';
+import '../Timeline.css';
 
 const Timeline = ({ selectedTags }) => {
   const [posts, setPosts] = useState([]);
@@ -45,14 +46,14 @@ const Timeline = ({ selectedTags }) => {
 
   return (
     <div>
-      {filteredPosts.map((post) => (
-        <div key={post.id}>
+    {filteredPosts.map((post) => (
+      <div key={post.id} className="post-container">
+        <div className="post">
           {post.coverImage && (
             <img
               src={post.coverImage}
               alt="Cover"
               onClick={() => handlePostClick(post)}
-              style={{ cursor: 'pointer' }}
             />
           )}
           <h2>{post.description}</h2>
@@ -66,7 +67,8 @@ const Timeline = ({ selectedTags }) => {
             Share on Twitter
           </TwitterShareButton>
         </div>
-      ))}
+      </div>
+    ))}
 
       <Modal isOpen={isModalOpen} onRequestClose={closeModal}>
         {selectedPost && (
