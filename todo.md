@@ -1,5 +1,11 @@
 # TODO
 
+
+- [ ] navbar moves slightly on scroll
+- [ ] data styling
+- [ ] Project modal
+- [ ] exit button on modal
+
 ## Project modal
 - [ ] Add project tag to schema 
 - [ ] clicking post project name opens a timeline modal of that project
