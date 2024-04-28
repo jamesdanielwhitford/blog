@@ -4,18 +4,29 @@
     align-items: center;
     flex-wrap: wrap;
     padding: 20px;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: white;
   }
   
   .tag {
     margin: 10px;
     cursor: pointer;
     font-size: 18px;
-    font-weight: bold;
     color: #333;
+    text-decoration: underline transparent; /* Transparent underline for unselected tags */
+    padding: 4px 0; /* Add some vertical padding */
+    line-height: 1.2; /* Adjust line-height to accommodate bold font */
+    height: 30px; /* Fixed height for tags */
+    box-sizing: border-box; /* Include padding and border in the element's total height and width */
+    transition: all 0.3s ease;
   }
   
   .tag.selected {
-    color: #007bff;
+    font-weight: bold;
+    text-decoration: underline;
+    text-decoration-color: #333; /* Visible underline color for selected tags */
   }
   
   @media screen and (max-width: 600px) {
