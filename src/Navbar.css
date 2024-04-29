@@ -1,36 +1,57 @@
 .navbar {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    padding: 20px;
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    background-color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 10px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  background-color: white;
+}
+
+.tag {
+  margin: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  color: #333;
+  text-decoration: underline transparent;
+  padding: 4px 0;
+  line-height: 1.2;
+  height: 30px;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+.tag.selected {
+  font-weight: bold;
+  text-decoration: underline;
+  text-decoration-color: #333;
+}
+
+@media screen and (max-width: 600px) {
+  .navbar {
+    justify-content: flex-start;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 12px 20px;
   }
-  
+
   .tag {
-    margin: 10px;
-    cursor: pointer;
-    font-size: 18px;
-    color: #333;
-    text-decoration: underline transparent; /* Transparent underline for unselected tags */
-    padding: 4px 0; /* Add some vertical padding */
-    line-height: 1.2; /* Adjust line-height to accommodate bold font */
-    height: 30px; /* Fixed height for tags */
-    box-sizing: border-box; /* Include padding and border in the element's total height and width */
-    transition: all 0.3s ease;
+    margin: 0 12px;
+    font-size: 14px;
   }
-  
-  .tag.selected {
-    font-weight: bold;
-    text-decoration: underline;
-    text-decoration-color: #333; /* Visible underline color for selected tags */
+}
+
+@media screen and (max-width: 375px) {
+  .navbar {
+    padding: 10px 16px;
   }
-  
-  @media screen and (max-width: 600px) {
-    .navbar {
-      flex-direction: column;
-    }
+
+  .tag {
+    margin: 0 10px;
+    font-size: 12px;
   }
+}
