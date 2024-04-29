@@ -1,16 +1,10 @@
 import { firestore } from '../firebase';
-import { useState, useEffect, useRef } from 'react';
-import { TwitterShareButton } from 'react-share';
-import Modal from 'react-modal';
+import { useState, useEffect } from 'react';
 import '../Timeline.css';
-
-Modal.setAppElement('#root'); // Set the app root element for accessibility
 
 const Timeline = ({ selectedTags }) => {
   const [posts, setPosts] = useState([]);
   const [selectedPost, setSelectedPost] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const modalRef = useRef(null);
 
   useEffect(() => {
     const unsubscribe = firestore
@@ -39,25 +33,38 @@ const Timeline = ({ selectedTags }) => {
 
   const handlePostClick = (post) => {
     setSelectedPost(post);
-    setIsModalOpen(true);
+    document.body.classList.add('modal-open');
   };
 
   const closeModal = () => {
     setSelectedPost(null);
-    setIsModalOpen(false);
+    document.body.classList.remove('modal-open');
   };
 
-  const scrollModalToTop = () => {
-    if (modalRef.current) {
-      modalRef.current.scrollTop = 0;
+  const handleShare = async (post) => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: post.description,
+          text: post.description,
+          url: window.location.href,
+        });
+      } catch (error) {
+        console.error('Error sharing:', error);
+      }
+    } else {
+      // Fallback for browsers that don't support the Web Share API
+      const url = window.location.href;
+      navigator.clipboard.writeText(url).then(
+        function () {
+          alert('Link copied to clipboard!');
+        },
+        function (err) {
+          console.error('Could not copy link: ', err);
+        }
+      );
     }
   };
-
-  useEffect(() => {
-    if (isModalOpen) {
-      scrollModalToTop();
-    }
-  }, [isModalOpen]);
 
   return (
     <div>
@@ -65,56 +72,58 @@ const Timeline = ({ selectedTags }) => {
         <div key={post.id} className="post-container">
           <div className="post">
             {post.coverImage && (
-              <img
-                src={post.coverImage}
-                alt="Cover"
-                onClick={() => handlePostClick(post)}
-              />
+              post.coverImage.toLowerCase().includes('.mp4') || post.coverImage.toLowerCase().includes('.mov') ? (
+                <div
+                  onClick={() => handlePostClick(post)}
+                  onMouseOver={(e) => e.currentTarget.children[0].play()}
+                  onMouseOut={(e) => e.currentTarget.children[0].pause()}
+                >
+                  <video src={post.coverImage} muted />
+                </div>
+              ) : (
+                <img
+                  src={post.coverImage}
+                  alt="Cover"
+                  onClick={() => handlePostClick(post)}
+                />
+              )
             )}
-            <p>{post.date.toDate().toLocaleString()}</p>
-            <h2>{post.description}</h2>
-            <p>{post.project}</p>
-            <TwitterShareButton
-              url={window.location.href}
-              title={post.description}
-              hashtags={post.uploads.flatMap((upload) => upload.tags)}
-            >
-              Share on Twitter
-            </TwitterShareButton>
-            <button onClick={() => handlePostClick(post)}>View More</button>
+            <div className="post-info">
+              <p className="post-date">{post.date.toDate().toLocaleString()}</p>
+              <p className="post-description">{post.description}</p>
+              <p className="post-project">{post.project}</p>
+            </div>
+            <div className="post-actions">
+              <button onClick={() => handleShare(post)}>Share</button>
+              <button onClick={() => handlePostClick(post)}>View More</button>
+            </div>
           </div>
         </div>
       ))}
 
-      <Modal
-        isOpen={isModalOpen}
-        onRequestClose={closeModal}
-        className="modal"
-        overlayClassName="modal-overlay"
-        contentRef={(ref) => (modalRef.current = ref)}
-        bodyOpenClassName="modal-open"
-      >
-        {selectedPost && (
-          <div>
-            <h2>{selectedPost.description}</h2>
-            <p>{selectedPost.date.toDate().toLocaleString()}</p>
-            {selectedPost.uploads.map((upload, index) => (
-              <div key={index}>
-                {upload.url.includes('.jpg') || upload.url.includes('.png') || upload.url.includes('.gif') ? (
-                  <img src={upload.url} alt={`Upload ${index + 1}`} loading="lazy" />
-                ) : (
-                  <video controls>
-                    <source src={upload.url} type="video/mp4" />
-                    Your browser does not support the video tag.
-                  </video>
-                )}
-                <p>Tags: {upload.tags.join(', ')}</p>
-              </div>
-            ))}
+      {selectedPost && (
+        <div className="modal">
+          <div className="modal-content">
+            <span className="close" onClick={closeModal}>&times;</span>
+            <h2 className="modal-description">{selectedPost.description}</h2>
+            <p className="modal-date">{selectedPost.date.toDate().toLocaleString()}</p>
+            <div className="modal-media">
+              {selectedPost.uploads.map((upload, index) => (
+                <div key={index}>
+                  {upload.url.includes('.jpg') || upload.url.includes('.png') || upload.url.includes('.gif') ? (
+                    <img src={upload.url} alt={`Upload ${index + 1}`} loading="lazy" />
+                  ) : (
+                    <video controls>
+                      <source src={upload.url} type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-        )}
-        <button onClick={closeModal}>Close</button>
-      </Modal>
+        </div>
+      )}
     </div>
   );
 };
