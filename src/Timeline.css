@@ -1,85 +1,180 @@
+body {
+  background-color: white;
+}
+
+.post-container:first-child {
+  margin-top: 80px; /* Add margin to the top of the first post container */
+}
+
 .post-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  
-  .post {
-    max-width: 600px;
-    height: 80vh; /* Fixed height for posts */
-    box-sizing: border-box; /* Include padding and border in the element's total height and width */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-  
-  .post img {
-    max-width: 100%;
-    max-height: 60vh;
-    object-fit: contain;
-    cursor: pointer;
-  }
-  
-  @media screen and (max-width: 600px) {
-    .post {
-      max-width: 100%;
-      height: 70vh; /* Adjusted height for smaller screens */
-    }
-  
-    .post img {
-      max-height: 50vh;
-    }
-  }
-
-
-.modal-open {
-  overflow: hidden;
-}
-
-  .modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: white;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start; /* Change to flex-start */
-    z-index: 1000;
-    overflow-y: auto;
-    padding: 20px;
-  }
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 999;
-}
-
-.modal h2 {
-  margin-bottom: 10px;
-}
-
-.modal p {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   margin-bottom: 20px;
 }
 
-.modal img,
-.modal video {
+.post {
+  max-width: 600px;
+  min-height: 80vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding-bottom: 20px;
+}
+
+.post img,
+.post div {
   max-width: 100%;
-  max-height: 80vh;
+  max-height: 60vh;
   object-fit: contain;
+  cursor: pointer;
   margin-bottom: 10px;
 }
 
-.modal button {
+.post video {
+  max-width: 100%;
+  max-height: 60vh;
+  object-fit: contain;
+}
+
+.post-info {
+  margin-bottom: 10px;
+}
+
+.post-date {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 5px;
+}
+
+.post-description {
+  font-size: 16px;
+  margin-bottom: 5px;
+}
+
+.post-project {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.post-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.post-actions button {
+  margin-left: 10px;
+}
+
+@media screen and (max-width: 600px) {
+  .post {
+    max-width: 100%;
+    min-height: 70vh;
+    padding-bottom: 20px;
+  }
+
+  .post-container:first-child {
+    margin-top: 80px; /* Adjust the margin for smaller screens */
+  }
+
+  .post img,
+  .post div {
+    max-height: 50vh;
+  }
+
+  .post video {
+    max-height: 50vh;
+  }
+}
+
+@media screen and (max-width: 375px) {
+  .post-container:first-child {
+    margin-top: 100px; /* Increase the margin for very small screens */
+  }
+}
+
+.modal {
+  display: block;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.modal-content {
+  background-color: white;
+  margin: 0;
+  padding: 20px;
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  box-sizing: border-box;
+}
+
+.close {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  color: black;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  background-color: white;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close:hover,
+.close:focus {
+  color: #999;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.modal-description {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.modal-date {
+  font-size: 16px;
+  color: #888;
+  margin-bottom: 20px;
+}
+
+.modal-media {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 600px;
   margin-top: 20px;
+}
+
+.modal-media img,
+.modal-media video {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  margin-bottom: 20px;
+}
+
+.modal-open {
+  overflow: hidden;
 }
