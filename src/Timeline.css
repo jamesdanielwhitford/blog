@@ -3,7 +3,7 @@ body {
 }
 
 .post-container:first-child {
-  margin-top: calc(50vh - 30vh); /* Adjust the margin to position the first post in the center */
+  margin-top: calc(50vh - 30vh);
 }
 
 .post-container {
@@ -78,7 +78,7 @@ body {
   }
 
   .post-container:first-child {
-    margin-top: calc(50vh - 25vh); /* Adjust the margin for smaller screens */
+    margin-top: calc(50vh - 28vh); /* Adjust the margin to move the first cover image slightly higher */
   }
 
   .post img,
@@ -93,7 +93,7 @@ body {
 
 @media screen and (max-width: 375px) {
   .post-container:first-child {
-    margin-top: calc(50vh - 20vh); /* Adjust the margin for very small screens */
+    margin-top: calc(50vh - 27vh); /* Adjust the margin for very small screens */
   }
 }
 

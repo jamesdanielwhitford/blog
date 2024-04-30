@@ -137,7 +137,8 @@ const AdminView = ({ user }) => {
         }
       });
 
-      const uploadedFiles = await Promise.all(uploads);
+      // const uploadedFiles = await Promise.all(uploads);
+      await Promise.all(uploads);
 
       const postData = {
         description: formData.description || existingPost.description || '',
