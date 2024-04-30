@@ -4,6 +4,7 @@ import firebase from 'firebase/compat/app';
 import 'firebase/compat/storage';
 import { getAuth } from 'firebase/auth';
 import { Link } from 'react-router-dom';
+import '../AdminView.css';
 
 const AdminView = ({ user }) => {
   const [posts, setPosts] = useState([]);
@@ -16,10 +17,12 @@ const AdminView = ({ user }) => {
     tags: [],
     isArchived: false,
     project: '',
+    coverImage: null,
   });
   const [editPostId, setEditPostId] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     const unsubscribe = firestore.collection('posts').onSnapshot(async (snapshot) => {
@@ -44,6 +47,15 @@ const AdminView = ({ user }) => {
     setFormData((prevFormData) => ({
       ...prevFormData,
       [name]: value,
+    }));
+  };
+
+  const handleCoverImageChange = (e) => {
+    const file = e.target.files[0];
+
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      coverImage: file,
     }));
   };
 
@@ -100,6 +112,14 @@ const AdminView = ({ user }) => {
         existingPost = postDoc.data();
       }
 
+      let coverImageUrl = existingPost.coverImage || null;
+
+      if (formData.coverImage) {
+        const coverImageRef = firebase.storage().ref(`${postId}/coverImage`);
+        await coverImageRef.put(formData.coverImage);
+        coverImageUrl = await coverImageRef.getDownloadURL();
+      }
+
       const files = [...e.target.imageUpload.files, ...e.target.videoUpload.files];
       const uploads = files.map(async (file) => {
         const storageRef = firebase.storage().ref(`${postId}/${file.name}`);
@@ -120,12 +140,10 @@ const AdminView = ({ user }) => {
 
       const uploadedFiles = await Promise.all(uploads);
 
-      const coverImage = uploadedFiles.length > 0 ? uploadedFiles[0].url : null;
-
       const postData = {
         description: formData.description || existingPost.description || '',
         date: postDate,
-        coverImage: coverImage,
+        coverImage: coverImageUrl,
         isArchived: existingPost.isArchived || false,
         project: formData.project,
       };
@@ -141,7 +159,9 @@ const AdminView = ({ user }) => {
         tags: [],
         isArchived: false,
         project: '',
+        coverImage: null,
       });
+      setShowModal(false);
     } catch (error) {
       setErrorMessage('An error occurred. Please try again.');
       console.error('Error submitting form:', error);
@@ -163,7 +183,9 @@ const AdminView = ({ user }) => {
         tags: post.tags,
         isArchived: post.isArchived || false,
         project: post.project || '',
+        coverImage: null,
       });
+      setShowModal(true);
     }
   };
 
@@ -193,10 +215,10 @@ const AdminView = ({ user }) => {
         const deletionPromises = files.items.map((file) => file.delete());
         await Promise.all(deletionPromises);
         await storageRef.delete();
-  
+
         // Delete the post document from Firestore
         await firestore.collection('posts').doc(postId).delete();
-  
+
         setSuccessMessage('Post deleted successfully.');
       } catch (error) {
         if (error.code === 'storage/object-not-found') {
@@ -205,7 +227,7 @@ const AdminView = ({ user }) => {
           setErrorMessage('An error occurred. Please try again.');
           console.error('Error deleting post:', error);
         }
-  
+
         // Delete the post document from Firestore even if the storage folder doesn't exist
         await firestore.collection('posts').doc(postId).delete();
         setSuccessMessage('Post deleted successfully.');
@@ -229,77 +251,103 @@ const AdminView = ({ user }) => {
     <div>
       {successMessage && <p style={{ color: 'green' }}>{successMessage}</p>}
       {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          name="description"
-          value={formData.description}
-          onChange={handleFormChange}
-          placeholder="Description"
-        />
-        <input
-          type="date"
-          name="date"
-          value={formData.date.toISOString().slice(0, 10)}
-          onChange={handleFormChange}
-        />
-        <div>
-          <label htmlFor="imageUpload">Upload Images:</label>
-          <input
-            id="imageUpload"
-            type="file"
-            name="imageUrls"
-            multiple
-            accept="image/*"
-          />
-        </div>
-        <div>
-          <label htmlFor="videoUpload">Upload Videos:</label>
-          <input
-            id="videoUpload"
-            type="file"
-            name="videoUrls"
-            multiple
-            accept="video/*"
-          />
-        </div>
-        <div>
-          <label>Tags:</label>
-          {['Philosophy', 'Gardens', 'Ceramics', 'Human Computer Interaction'].map((tag) => (
-            <div key={tag}>
+
+      <button onClick={() => setShowModal(true)}>Upload</button>
+
+      {showModal && (
+        <div className="modal">
+          <div className="modal-content">
+            <span className="close" onClick={() => setShowModal(false)}>
+              &times;
+            </span>
+
+            <form onSubmit={handleSubmit}>
               <input
-                type="checkbox"
-                id={tag}
-                checked={formData.tags.includes(tag)}
-                onChange={() => handleTagChange(tag)}
+                type="text"
+                name="description"
+                value={formData.description}
+                onChange={handleFormChange}
+                placeholder="Description"
               />
-              <label htmlFor={tag}>{tag}</label>
-            </div>
-          ))}
+              <input
+                type="date"
+                name="date"
+                value={formData.date.toISOString().slice(0, 10)}
+                onChange={handleFormChange}
+              />
+
+              <div>
+                <label htmlFor="coverImageUpload">Upload Cover Image:</label>
+                <input
+                  id="coverImageUpload"
+                  type="file"
+                  name="coverImage"
+                  accept="image/*"
+                  onChange={handleCoverImageChange}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="imageUpload">Upload Images:</label>
+                <input id="imageUpload" type="file" name="imageUrls" multiple accept="image/*" />
+              </div>
+              <div>
+                <label htmlFor="videoUpload">Upload Videos:</label>
+                <input id="videoUpload" type="file" name="videoUrls" multiple accept="video/*" />
+              </div>
+              <div>
+                <label>Tags:</label>
+                {['Philosophy', 'Gardens', 'Ceramics', 'Human Computer Interaction'].map((tag) => (
+                  <div key={tag}>
+                    <input
+                      type="checkbox"
+                      id={tag}
+                      checked={formData.tags.includes(tag)}
+                      onChange={() => handleTagChange(tag)}
+                    />
+                    <label htmlFor={tag}>{tag}</label>
+                  </div>
+                ))}
+              </div>
+              <input
+                type="text"
+                name="project"
+                value={formData.project}
+                onChange={handleFormChange}
+                placeholder="Project"
+              />
+              <button type="submit" disabled={loading}>
+                {loading ? 'Saving...' : editPostId ? 'Update Post' : 'Create Post'}
+              </button>
+            </form>
+          </div>
         </div>
-        <input
-          type="text"
-          name="project"
-          value={formData.project}
-          onChange={handleFormChange}
-          placeholder="Project"
-        />
-        <button type="submit" disabled={loading}>
-          {loading ? 'Saving...' : editPostId ? 'Update Post' : 'Create Post'}
-        </button>
-      </form>
+      )}
+
       <div>
         {posts.map((post) => (
-          <div key={post.id}>
-            <h2>{post.description}</h2>
-            <p>{post.date.toDate().toLocaleString()}</p>
-            <p>Tags: {post.tags ? post.tags.join(', ') : ''}</p>
-            <p>Project: {post.project}</p>
-            <button onClick={() => handleEdit(post.id)}>Edit</button>
-            <button onClick={() => handleArchive(post.id, post.isArchived || false)}>
-              {post.isArchived ? 'Unarchive' : 'Archive'}
-            </button>
-            <button onClick={() => handleDelete(post.id)}>Delete</button>
+          <div key={post.id} className="post">
+            {post.coverImage && (
+              <img
+                src={post.coverImage}
+                alt="Cover"
+                onClick={() => handleEdit(post.id)}
+                className="post-cover-image"
+              />
+            )}
+            <div className="post-info">
+              <h2>{post.description}</h2>
+              <p>{post.date.toDate().toLocaleString()}</p>
+              <p>Tags: {post.tags ? post.tags.join(', ') : ''}</p>
+              <p>Project: {post.project}</p>
+            </div>
+            <div className="post-actions">
+              <button onClick={() => handleEdit(post.id)}>Edit</button>
+              <button onClick={() => handleArchive(post.id, post.isArchived || false)}>
+                {post.isArchived ? 'Unarchive' : 'Archive'}
+              </button>
+              <button onClick={() => handleDelete(post.id)}>Delete</button>
+            </div>
           </div>
         ))}
       </div>
