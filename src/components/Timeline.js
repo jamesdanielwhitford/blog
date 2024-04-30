@@ -1,5 +1,6 @@
 import { firestore } from '../firebase';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import LazyLoad from 'react-lazyload';
 import '../Timeline.css';
 
 const Timeline = ({ selectedTags }) => {
@@ -41,7 +42,6 @@ const Timeline = ({ selectedTags }) => {
       const windowHeight = window.innerHeight;
       const documentHeight = document.documentElement.offsetHeight;
 
-      // Check if the user has scrolled to the 8th post or beyond
       if (scrollTop + windowHeight >= documentHeight - windowHeight * 0.6) {
         if (!loading && lastPost) {
           setLoading(true);
@@ -101,7 +101,6 @@ const Timeline = ({ selectedTags }) => {
         console.error('Error sharing:', error);
       }
     } else {
-      // Fallback for browsers that don't support the Web Share API
       const url = window.location.href;
       navigator.clipboard.writeText(url).then(
         function () {
@@ -114,26 +113,56 @@ const Timeline = ({ selectedTags }) => {
     }
   };
 
+  const videoRef = useRef(null);
+
+  const handleMouseOver = () => {
+    if (videoRef.current) {
+      videoRef.current.play();
+    }
+  };
+
+  const handleMouseOut = () => {
+    if (videoRef.current) {
+      videoRef.current.pause();
+    }
+  };
+
   return (
     <div>
-      {filteredPosts.map((post) => (
+      {filteredPosts.map((post, index) => (
         <div key={post.id} className="post-container">
           <div className="post">
             {post.coverImage && (
               post.coverImage.toLowerCase().includes('.mp4') || post.coverImage.toLowerCase().includes('.mov') ? (
                 <div
                   onClick={() => handlePostClick(post)}
-                  onMouseOver={(e) => e.currentTarget.children[0].play()}
-                  onMouseOut={(e) => e.currentTarget.children[0].pause()}
+                  onMouseOver={handleMouseOver}
+                  onMouseOut={handleMouseOut}
                 >
-                  <video src={post.coverImage} muted />
+                  {index === 0 ? (
+                    <video ref={videoRef} src={post.coverImage} muted />
+                  ) : (
+                    <LazyLoad offset={500}>
+                      <video ref={videoRef} src={post.coverImage} muted />
+                    </LazyLoad>
+                  )}
                 </div>
               ) : (
-                <img
-                  src={post.coverImage}
-                  alt="Cover"
-                  onClick={() => handlePostClick(post)}
-                />
+                index === 0 ? (
+                  <img
+                    src={post.coverImage}
+                    alt="Cover"
+                    onClick={() => handlePostClick(post)}
+                  />
+                ) : (
+                  <LazyLoad offset={500}>
+                    <img
+                      src={post.coverImage}
+                      alt="Cover"
+                      onClick={() => handlePostClick(post)}
+                    />
+                  </LazyLoad>
+                )
               )
             )}
             <div className="post-info">
@@ -159,12 +188,16 @@ const Timeline = ({ selectedTags }) => {
               {selectedPost.uploads.map((upload, index) => (
                 <div key={index}>
                   {upload.url.includes('.jpg') || upload.url.includes('.png') || upload.url.includes('.gif') ? (
-                    <img src={upload.url} alt={`Upload ${index + 1}`} loading="lazy" />
+                    <LazyLoad>
+                      <img src={upload.url} alt={`Upload ${index + 1}`} />
+                    </LazyLoad>
                   ) : (
-                    <video controls>
-                      <source src={upload.url} type="video/mp4" />
-                      Your browser does not support the video tag.
-                    </video>
+                    <LazyLoad>
+                      <video controls>
+                        <source src={upload.url} type="video/mp4" />
+                        Your browser does not support the video tag.
+                      </video>
+                    </LazyLoad>
                   )}
                 </div>
               ))}
@@ -172,8 +205,7 @@ const Timeline = ({ selectedTags }) => {
           </div>
         </div>
       )}
-            {loading && <div>Loading...</div>}
-
+      {loading && <div>Loading...</div>}
     </div>
   );
 };

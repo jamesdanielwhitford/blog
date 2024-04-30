@@ -4,6 +4,7 @@ import firebase from 'firebase/compat/app';
 import 'firebase/compat/storage';
 import { getAuth } from 'firebase/auth';
 import { Link } from 'react-router-dom';
+import LazyLoad from 'react-lazyload';
 import '../AdminView.css';
 
 const AdminView = ({ user }) => {
@@ -76,7 +77,6 @@ const AdminView = ({ user }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Form validation
     if (
       !formData.description &&
       (formData.imageUrls.length === 0 &&
@@ -90,7 +90,6 @@ const AdminView = ({ user }) => {
       setErrorMessage('');
     }
 
-    // Check user authentication
     const auth = getAuth();
     const user = auth.currentUser;
 
@@ -209,14 +208,12 @@ const AdminView = ({ user }) => {
       setLoading(true);
       setErrorMessage('');
       try {
-        // Delete the corresponding folder in Firebase Storage
         const storageRef = firebase.storage().ref(postId);
         const files = await storageRef.listAll();
         const deletionPromises = files.items.map((file) => file.delete());
         await Promise.all(deletionPromises);
         await storageRef.delete();
 
-        // Delete the post document from Firestore
         await firestore.collection('posts').doc(postId).delete();
 
         setSuccessMessage('Post deleted successfully.');
@@ -228,7 +225,6 @@ const AdminView = ({ user }) => {
           console.error('Error deleting post:', error);
         }
 
-        // Delete the post document from Firestore even if the storage folder doesn't exist
         await firestore.collection('posts').doc(postId).delete();
         setSuccessMessage('Post deleted successfully.');
       }
@@ -328,12 +324,14 @@ const AdminView = ({ user }) => {
         {posts.map((post) => (
           <div key={post.id} className="post">
             {post.coverImage && (
-              <img
-                src={post.coverImage}
-                alt="Cover"
-                onClick={() => handleEdit(post.id)}
-                className="post-cover-image"
-              />
+              <LazyLoad>
+                <img
+                  src={post.coverImage}
+                  alt="Cover"
+                  onClick={() => handleEdit(post.id)}
+                  className="post-cover-image"
+                />
+              </LazyLoad>
             )}
             <div className="post-info">
               <h2>{post.description}</h2>
