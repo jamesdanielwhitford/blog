@@ -5,25 +5,73 @@ import '../Timeline.css';
 const Timeline = ({ selectedTags }) => {
   const [posts, setPosts] = useState([]);
   const [selectedPost, setSelectedPost] = useState(null);
+  const [lastPost, setLastPost] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = firestore
-      .collection('posts')
-      .where('isArchived', '==', false)
-      .onSnapshot(async (snapshot) => {
-        const postsData = await Promise.all(
-          snapshot.docs.map(async (doc) => {
-            const post = { id: doc.id, ...doc.data() };
-            const uploadsSnapshot = await doc.ref.collection('uploads').get();
-            post.uploads = uploadsSnapshot.docs.map((doc) => doc.data());
-            return post;
-          })
-        );
-        setPosts(postsData);
-      });
+    const fetchInitialPosts = async () => {
+      setLoading(true);
+      const initialPosts = await firestore
+        .collection('posts')
+        .where('isArchived', '==', false)
+        .orderBy('date', 'desc')
+        .limit(3)
+        .get();
 
-    return unsubscribe;
+      const initialPostsData = await Promise.all(
+        initialPosts.docs.map(async (doc) => {
+          const post = { id: doc.id, ...doc.data() };
+          const uploadsSnapshot = await doc.ref.collection('uploads').get();
+          post.uploads = uploadsSnapshot.docs.map((doc) => doc.data());
+          return post;
+        })
+      );
+
+      setPosts(initialPostsData);
+      setLastPost(initialPosts.docs[initialPosts.docs.length - 1]);
+      setLoading(false);
+    };
+
+    fetchInitialPosts();
   }, []);
+
+  useEffect(() => {
+    const handleScroll = async () => {
+      const scrollTop = document.documentElement.scrollTop;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.offsetHeight;
+
+      // Check if the user has scrolled to the 8th post or beyond
+      if (scrollTop + windowHeight >= documentHeight - windowHeight * 0.6) {
+        if (!loading && lastPost) {
+          setLoading(true);
+          const nextPosts = await firestore
+            .collection('posts')
+            .where('isArchived', '==', false)
+            .orderBy('date', 'desc')
+            .startAfter(lastPost)
+            .limit(3)
+            .get();
+
+          const nextPostsData = await Promise.all(
+            nextPosts.docs.map(async (doc) => {
+              const post = { id: doc.id, ...doc.data() };
+              const uploadsSnapshot = await doc.ref.collection('uploads').get();
+              post.uploads = uploadsSnapshot.docs.map((doc) => doc.data());
+              return post;
+            })
+          );
+
+          setPosts([...posts, ...nextPostsData]);
+          setLastPost(nextPosts.docs[nextPosts.docs.length - 1]);
+          setLoading(false);
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [posts, loading, lastPost]);
 
   const filteredPosts = selectedTags.length === 0
     ? posts
@@ -124,6 +172,8 @@ const Timeline = ({ selectedTags }) => {
           </div>
         </div>
       )}
+            {loading && <div>Loading...</div>}
+
     </div>
   );
 };
