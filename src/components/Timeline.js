@@ -9,6 +9,16 @@ const Timeline = ({ selectedTags }) => {
   const [lastPost, setLastPost] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const [fullScreenMedia, setFullScreenMedia] = useState(null);
+
+  const openFullScreenModal = (mediaUrl) => {
+    setFullScreenMedia(mediaUrl);
+  };
+
+  const closeFullScreenModal = () => {
+    setFullScreenMedia(null);
+  };
+
   useEffect(() => {
     const fetchInitialPosts = async () => {
       setLoading(true);
@@ -134,39 +144,40 @@ const Timeline = ({ selectedTags }) => {
       {filteredPosts.map((post, index) => (
         <div key={post.id} className="post-container">
           <div className="post">
-            {post.coverImage && (
-              post.coverImage.toLowerCase().includes('.mp4') || post.coverImage.toLowerCase().includes('.mov') ? (
-                <div
-                  onClick={() => handlePostClick(post)}
-                  onMouseOver={handleMouseOver}
-                  onMouseOut={handleMouseOut}
-                >
-                  {index === 0 ? (
-                    <video ref={videoRef} src={post.coverImage} muted />
-                  ) : (
-                    <LazyLoad offset={500}>
-                      <video ref={videoRef} src={post.coverImage} muted />
-                    </LazyLoad>
-                  )}
-                </div>
-              ) : (
-                index === 0 ? (
-                  <img
-                    src={post.coverImage}
-                    alt="Cover"
-                    onClick={() => handlePostClick(post)}
-                  />
-                ) : (
-                  <LazyLoad offset={500}>
-                    <img
-                      src={post.coverImage}
-                      alt="Cover"
-                      onClick={() => handlePostClick(post)}
-                    />
-                  </LazyLoad>
-                )
-              )
-            )}
+          {post.coverImage && (
+  post.coverImage.toLowerCase().includes('.mp4') || post.coverImage.toLowerCase().includes('.mov') ? (
+    <div
+      onClick={() => handlePostClick(post)}
+      onMouseOver={handleMouseOver}
+      onMouseOut={handleMouseOut}
+    >
+      {index === 0 ? (
+        <video ref={videoRef} src={post.coverImage} muted />
+      ) : (
+        <LazyLoad offset={500}>
+          <video ref={videoRef} src={post.coverImage} muted />
+        </LazyLoad>
+      )}
+      <div className="play-button"></div>
+    </div>
+  ) : (
+    index === 0 ? (
+      <img
+        src={post.coverImage}
+        alt="Cover"
+        onClick={() => handlePostClick(post)}
+      />
+    ) : (
+      <LazyLoad offset={500}>
+        <img
+          src={post.coverImage}
+          alt="Cover"
+          onClick={() => handlePostClick(post)}
+        />
+      </LazyLoad>
+    )
+  )
+)}
             <div className="post-info">
               <p className="post-date">{post.date.toDate().toLocaleString()}</p>
               <p className="post-description">{post.description}</p>
@@ -191,7 +202,7 @@ const Timeline = ({ selectedTags }) => {
       </div>
       <div className="modal-body">
         {selectedPost.coverImage && (
-          <div className="modal-cover-image">
+          <div className="modal-cover-image" onClick={() => openFullScreenModal(selectedPost.coverImage)}>
             {selectedPost.coverImage.toLowerCase().includes('.mp4') || selectedPost.coverImage.toLowerCase().includes('.mov') ? (
               <video src={selectedPost.coverImage} controls />
             ) : (
@@ -200,7 +211,7 @@ const Timeline = ({ selectedTags }) => {
           </div>
         )}
         {selectedPost.uploads.map((upload, index) => (
-          <div key={index} className="modal-media-item">
+          <div key={index} className="modal-media-item" onClick={() => openFullScreenModal(upload.url)}>
             {upload.url.includes('.jpg') || upload.url.includes('.png') || upload.url.includes('.gif') ? (
               <LazyLoad>
                 <img src={upload.url} alt={`Upload ${index + 1}`} />
@@ -216,6 +227,19 @@ const Timeline = ({ selectedTags }) => {
           </div>
         ))}
       </div>
+    </div>
+  </div>
+)}
+
+{fullScreenMedia && (
+  <div className="full-screen-modal">
+    <span className="full-screen-close" onClick={closeFullScreenModal}>&times;</span>
+    <div className="full-screen-media-container">
+      {fullScreenMedia.includes('.jpg') || fullScreenMedia.includes('.png') || fullScreenMedia.includes('.gif') ? (
+        <img src={fullScreenMedia} alt="Full Screen Media" />
+      ) : (
+        <video src={fullScreenMedia} controls />
+      )}
     </div>
   </div>
 )}
