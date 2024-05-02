@@ -1,10 +1,15 @@
 # TODO
 
 
-- [ ] navbar moves slightly on scroll
-- [ ] data styling
-- [ ] Project modal
-- [ ] exit button on modal
+- [ ] change upload to match python resize folder structure
+- [ ] 
+- [ ] 
+- [ ] 
+- [ ] 
+- [x] navbar moves slightly on scroll
+- [x] data styling
+- [x] Project modal
+- [x] exit button on modal
 
 ## Project modal
 - [ ] Add project tag to schema 

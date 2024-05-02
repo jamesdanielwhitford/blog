@@ -4,8 +4,8 @@ const Navbar = ({ selectedTags, setSelectedTags }) => {
   const tags = ['Philosophy', 'Gardens', 'Ceramics', 'Human Computer Interaction'];
 
   const handleTagClick = (tag) => {
-    if (selectedTags.length === tags.length && selectedTags.includes(tag)) {
-      setSelectedTags([tag]);
+    if (selectedTags.length === 4 && selectedTags.includes(tag)) {
+      setSelectedTags([]);
     } else if (selectedTags.length === 1 && selectedTags.includes(tag)) {
       setSelectedTags(tags);
     } else {

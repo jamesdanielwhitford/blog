@@ -26,19 +26,22 @@ const AdminView = ({ user }) => {
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = firestore.collection('posts').onSnapshot(async (snapshot) => {
-      const postsData = await Promise.all(
-        snapshot.docs.map(async (doc) => {
-          const post = { id: doc.id, ...doc.data() };
-          const uploadsSnapshot = await doc.ref.collection('uploads').get();
-          post.uploads = uploadsSnapshot.docs.map((doc) => doc.data());
-          return post;
-        })
-      );
-      setPosts(postsData);
-      setLoading(false);
-    });
-
+    const unsubscribe = firestore
+      .collection('posts')
+      .orderBy('date', 'desc') // Order by date in descending order
+      .onSnapshot(async (snapshot) => {
+        const postsData = await Promise.all(
+          snapshot.docs.map(async (doc) => {
+            const post = { id: doc.id, ...doc.data() };
+            const uploadsSnapshot = await doc.ref.collection('uploads').get();
+            post.uploads = uploadsSnapshot.docs.map((doc) => doc.data());
+            return post;
+          })
+        );
+        setPosts(postsData);
+        setLoading(false);
+      });
+  
     return unsubscribe;
   }, []);
 
@@ -76,7 +79,7 @@ const AdminView = ({ user }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (
       !formData.description &&
       (formData.imageUrls.length === 0 &&
@@ -89,36 +92,36 @@ const AdminView = ({ user }) => {
     } else {
       setErrorMessage('');
     }
-
+  
     const auth = getAuth();
     const user = auth.currentUser;
-
+  
     if (!user) {
       setErrorMessage('User not authenticated. Please sign in to upload files.');
       return;
     }
-
+  
     setLoading(true);
     try {
       const postDate = new Date(formData.date);
       const postId = `${postDate.getFullYear()}-${postDate.getMonth() + 1}-${postDate.getDate()}-${postDate.getTime()}`;
-
+  
       const postRef = firestore.collection('posts').doc(postId);
       const postDoc = await postRef.get();
-
+  
       let existingPost = {};
       if (postDoc.exists) {
         existingPost = postDoc.data();
       }
-
+  
       let coverImageUrl = existingPost.coverImage || null;
-
+  
       if (formData.coverImage) {
         const coverImageRef = firebase.storage().ref(`${postId}/coverImage`);
         await coverImageRef.put(formData.coverImage);
         coverImageUrl = await coverImageRef.getDownloadURL();
       }
-
+  
       const files = [...e.target.imageUpload.files, ...e.target.videoUpload.files];
       const uploads = files.map(async (file) => {
         const storageRef = firebase.storage().ref(`${postId}/${file.name}`);
@@ -127,7 +130,7 @@ const AdminView = ({ user }) => {
           const downloadUrl = await storageRef.getDownloadURL();
           const uploadData = {
             url: downloadUrl,
-            tags: formData.tags,
+            tags: formData.tags, // Use the selected tags from formData
           };
           const uploadRef = await postRef.collection('uploads').add(uploadData);
           return { id: uploadRef.id, ...uploadData };
@@ -136,21 +139,21 @@ const AdminView = ({ user }) => {
           throw error;
         }
       });
-
-      // const uploadedFiles = await Promise.all(uploads);
+  
       await Promise.all(uploads);
-
+  
       const postData = {
         description: formData.description || existingPost.description || '',
         date: postDate,
         coverImage: coverImageUrl,
         isArchived: existingPost.isArchived || false,
         project: formData.project,
+        tags: formData.tags, // Add the selected tags to the post data
       };
-
+  
       await postRef.set(postData);
       setSuccessMessage('Post saved successfully.');
-
+  
       setFormData({
         description: '',
         date: new Date(),

@@ -73,11 +73,13 @@ const Timeline = ({ selectedTags }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [posts, loading, lastPost]);
 
-  const filteredPosts = selectedTags.length === 0
-    ? posts
-    : posts.filter((post) =>
-        post.uploads.some((upload) => upload.tags.some((tag) => selectedTags.includes(tag)))
-      );
+  const filteredPosts = selectedTags.length === 4 || selectedTags.length === 0
+  ? posts
+  : posts.filter((post) =>
+      post.uploads.some((upload) =>
+        upload.tags && upload.tags.some((tag) => selectedTags.includes(tag))
+      )
+    );
 
   const handlePostClick = (post) => {
     setSelectedPost(post);
@@ -178,33 +180,45 @@ const Timeline = ({ selectedTags }) => {
         </div>
       ))}
 
-      {selectedPost && (
-        <div className="modal">
-          <div className="modal-content">
-            <span className="close" onClick={closeModal}>&times;</span>
-            <h2 className="modal-description">{selectedPost.description}</h2>
-            <p className="modal-date">{selectedPost.date.toDate().toLocaleString()}</p>
-            <div className="modal-media">
-              {selectedPost.uploads.map((upload, index) => (
-                <div key={index}>
-                  {upload.url.includes('.jpg') || upload.url.includes('.png') || upload.url.includes('.gif') ? (
-                    <LazyLoad>
-                      <img src={upload.url} alt={`Upload ${index + 1}`} />
-                    </LazyLoad>
-                  ) : (
-                    <LazyLoad>
-                      <video controls>
-                        <source src={upload.url} type="video/mp4" />
-                        Your browser does not support the video tag.
-                      </video>
-                    </LazyLoad>
-                  )}
-                </div>
-              ))}
-            </div>
+{selectedPost && (
+  <div className="modal">
+    <div className="modal-content">
+      <span className="close" onClick={closeModal}>&times;</span>
+      <div className="modal-header">
+        <h2 className="modal-description">{selectedPost.description}</h2>
+        <p className="modal-date">{selectedPost.date.toDate().toLocaleString()}</p>
+        <p className="modal-project">{selectedPost.project}</p>
+      </div>
+      <div className="modal-body">
+        {selectedPost.coverImage && (
+          <div className="modal-cover-image">
+            {selectedPost.coverImage.toLowerCase().includes('.mp4') || selectedPost.coverImage.toLowerCase().includes('.mov') ? (
+              <video src={selectedPost.coverImage} controls />
+            ) : (
+              <img src={selectedPost.coverImage} alt="Cover" />
+            )}
           </div>
-        </div>
-      )}
+        )}
+        {selectedPost.uploads.map((upload, index) => (
+          <div key={index} className="modal-media-item">
+            {upload.url.includes('.jpg') || upload.url.includes('.png') || upload.url.includes('.gif') ? (
+              <LazyLoad>
+                <img src={upload.url} alt={`Upload ${index + 1}`} />
+              </LazyLoad>
+            ) : (
+              <LazyLoad>
+                <video controls>
+                  <source src={upload.url} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              </LazyLoad>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+)}
       {loading && <div>Loading...</div>}
     </div>
   );
