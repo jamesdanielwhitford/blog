@@ -138,6 +138,28 @@ const Timeline = ({ selectedTags }) => {
     setFullScreenImage(null);
   };
 
+  const preloadImage = (url) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.src = url;
+      img.onload = () => resolve();
+      img.onerror = () => reject();
+    });
+  };
+
+  useEffect(() => {
+    if (selectedPost) {
+      const imagesToPreload = [
+        selectedPost.coverImage,
+        ...selectedPost.uploads.map((upload) => upload.url),
+      ];
+
+      Promise.all(imagesToPreload.map((url) => preloadImage(url)))
+        .then(() => console.log('Images preloaded'))
+        .catch(() => console.log('Error preloading images'));
+    }
+  }, [selectedPost]);
+
   return (
     <div>
       {filteredPosts.map((post, index) => (
@@ -200,34 +222,34 @@ const Timeline = ({ selectedTags }) => {
               <p className="modal-project">{selectedPost.project}</p>
             </div>
             <div className="modal-body">
-  {selectedPost.coverImage && (
-    <div className="modal-cover-image" onClick={() => openFullScreenImage(selectedPost.coverImage)}>
-      {selectedPost.coverImage.toLowerCase().includes('.mp4') || selectedPost.coverImage.toLowerCase().includes('.mov') ? (
-        <video src={selectedPost.coverImage} controls />
-      ) : (
-        <img src={selectedPost.coverImage} alt="Cover" />
-      )}
-    </div>
-  )}
-  {selectedPost.uploads.map((upload, index) => (
-    <div key={index} className="modal-media-item">
-      {upload.url.includes('.jpg') || upload.url.includes('.png') || upload.url.includes('.gif') ? (
-        <div onClick={() => openFullScreenImage(upload.url)}>
-          <LazyLoad>
-            <img src={upload.url} alt={`Upload ${index + 1}`} />
-          </LazyLoad>
-        </div>
-      ) : (
-        <LazyLoad>
-          <video controls>
-            <source src={upload.url} type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
-        </LazyLoad>
-      )}
-    </div>
-  ))}
-</div>
+              {selectedPost.coverImage && (
+                <div className="modal-cover-image" onClick={() => openFullScreenImage(selectedPost.coverImage)}>
+                  {selectedPost.coverImage.toLowerCase().includes('.mp4') || selectedPost.coverImage.toLowerCase().includes('.mov') ? (
+                    <video src={selectedPost.coverImage} controls />
+                  ) : (
+                    <img src={selectedPost.coverImage} alt="Cover" />
+                  )}
+                </div>
+              )}
+              {selectedPost.uploads.map((upload, index) => (
+                <div key={index} className="modal-media-item">
+                  {upload.url.includes('.jpg') || upload.url.includes('.png') || upload.url.includes('.gif') ? (
+                    <div onClick={() => openFullScreenImage(upload.url)}>
+                      <LazyLoad>
+                        <img src={upload.url} alt={`Upload ${index + 1}`} />
+                      </LazyLoad>
+                    </div>
+                  ) : (
+                    <LazyLoad>
+                      <video controls>
+                        <source src={upload.url} type="video/mp4" />
+                        Your browser does not support the video tag.
+                      </video>
+                    </LazyLoad>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
