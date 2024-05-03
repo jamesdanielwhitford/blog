@@ -1,5 +1,5 @@
 import { firestore } from '../firebase';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import LazyLoad from 'react-lazyload';
 import '../Timeline.css';
 
@@ -73,7 +73,7 @@ const Timeline = ({ selectedTags }) => {
     fetchSecondPost();
   }, [posts]);
 
-  const fetchNextPost = async () => {
+  const fetchNextPost = useCallback(async () => {
     if (!loading && posts.length > 0 && hasMorePosts) {
       setLoading(true);
       const lastPostDate = posts[posts.length - 1].date;
@@ -101,7 +101,7 @@ const Timeline = ({ selectedTags }) => {
       }
       setLoading(false);
     }
-  };
+  }, [loading, posts, hasMorePosts]);
 
   useEffect(() => {
     const handleScroll = async () => {
@@ -116,7 +116,7 @@ const Timeline = ({ selectedTags }) => {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [posts, loading, hasMorePosts]);
+  }, [fetchNextPost]);
 
   const filteredPosts = selectedTags.length === 4 || selectedTags.length === 0
     ? posts
@@ -288,7 +288,7 @@ const Timeline = ({ selectedTags }) => {
       {fullScreenImage && (
         <div className="full-screen-modal" onClick={closeFullScreenImage}>
           <div className="full-screen-image-container">
-            <img src={fullScreenImage} alt="Full Screen Image" />
+            <img src={fullScreenImage} alt="Full Screen" />
           </div>
         </div>
       )}
