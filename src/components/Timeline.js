@@ -20,14 +20,10 @@ const Timeline = ({ selectedTags }) => {
         .limit(3)
         .get();
 
-      const initialPostsData = await Promise.all(
-        initialPosts.docs.map(async (doc) => {
-          const post = { id: doc.id, ...doc.data() };
-          const uploadsSnapshot = await doc.ref.collection('uploads').get();
-          post.uploads = uploadsSnapshot.docs.map((doc) => doc.data());
-          return post;
-        })
-      );
+      const initialPostsData = initialPosts.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
 
       setPosts(initialPostsData);
       setLastPost(initialPosts.docs[initialPosts.docs.length - 1]);
@@ -82,7 +78,11 @@ const Timeline = ({ selectedTags }) => {
         )
       );
 
-  const handlePostClick = (post) => {
+  const handlePostClick = async (post) => {
+    if (!post.uploads) {
+      const uploadsSnapshot = await firestore.collection('posts').doc(post.id).collection('uploads').get();
+      post.uploads = uploadsSnapshot.docs.map((doc) => doc.data());
+    }
     setSelectedPost(post);
     document.body.classList.add('modal-open');
   };
@@ -231,7 +231,7 @@ const Timeline = ({ selectedTags }) => {
                   )}
                 </div>
               )}
-              {selectedPost.uploads.map((upload, index) => (
+              {selectedPost.uploads && selectedPost.uploads.map((upload, index) => (
                 <div key={index} className="modal-media-item">
                   {upload.url.includes('.jpg') || upload.url.includes('.png') || upload.url.includes('.gif') ? (
                     <div onClick={() => openFullScreenImage(upload.url)}>
