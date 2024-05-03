@@ -1,37 +1,100 @@
 import { firestore } from '../firebase';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import LazyLoad from 'react-lazyload';
 import '../Timeline.css';
 
 const Timeline = ({ selectedTags }) => {
   const [posts, setPosts] = useState([]);
   const [selectedPost, setSelectedPost] = useState(null);
-  const [lastPost, setLastPost] = useState(null);
   const [loading, setLoading] = useState(false);
   const [fullScreenImage, setFullScreenImage] = useState(null);
+  const [currentPostIndex, setCurrentPostIndex] = useState(0);
 
   useEffect(() => {
-    const fetchInitialPosts = async () => {
+    const fetchInitialPost = async () => {
       setLoading(true);
-      const initialPosts = await firestore
+      const initialPost = await firestore
         .collection('posts')
         .where('isArchived', '==', false)
         .orderBy('date', 'desc')
-        .limit(3)
+        .limit(1)
         .get();
 
-      const initialPostsData = initialPosts.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+      const initialPostData = await Promise.all(
+        initialPost.docs.map(async (doc) => {
+          const post = { id: doc.id, ...doc.data() };
+          const uploadsSnapshot = await doc.ref.collection('uploads').get();
+          post.uploads = uploadsSnapshot.docs.map((doc) => doc.data());
+          return post;
+        })
+      );
 
-      setPosts(initialPostsData);
-      setLastPost(initialPosts.docs[initialPosts.docs.length - 1]);
+      setPosts(initialPostData);
       setLoading(false);
     };
 
-    fetchInitialPosts();
+    fetchInitialPost();
   }, []);
+
+  useEffect(() => {
+    const fetchSecondPost = async () => {
+      if (posts.length === 1) {
+        setLoading(true);
+        const lastPostDate = posts[0].date;
+        const secondPost = await firestore
+          .collection('posts')
+          .where('isArchived', '==', false)
+          .orderBy('date', 'desc')
+          .startAfter(lastPostDate)
+          .limit(1)
+          .get();
+
+        if (!secondPost.empty) {
+          const secondPostData = await Promise.all(
+            secondPost.docs.map(async (doc) => {
+              const post = { id: doc.id, ...doc.data() };
+              const uploadsSnapshot = await doc.ref.collection('uploads').get();
+              post.uploads = uploadsSnapshot.docs.map((doc) => doc.data());
+              return post;
+            })
+          );
+
+          setPosts([...posts, ...secondPostData]);
+        }
+        setLoading(false);
+      }
+    };
+
+    fetchSecondPost();
+  }, [posts]);
+
+  const fetchNextPost = async () => {
+    if (!loading && posts.length > 0) {
+      setLoading(true);
+      const lastPostDate = posts[posts.length - 1].date;
+      const nextPost = await firestore
+        .collection('posts')
+        .where('isArchived', '==', false)
+        .orderBy('date', 'desc')
+        .startAfter(lastPostDate)
+        .limit(1)
+        .get();
+
+      if (!nextPost.empty) {
+        const nextPostData = await Promise.all(
+          nextPost.docs.map(async (doc) => {
+            const post = { id: doc.id, ...doc.data() };
+            const uploadsSnapshot = await doc.ref.collection('uploads').get();
+            post.uploads = uploadsSnapshot.docs.map((doc) => doc.data());
+            return post;
+          })
+        );
+
+        setPosts([...posts, ...nextPostData]);
+      }
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const handleScroll = async () => {
@@ -40,35 +103,13 @@ const Timeline = ({ selectedTags }) => {
       const documentHeight = document.documentElement.offsetHeight;
 
       if (scrollTop + windowHeight >= documentHeight - windowHeight * 0.6) {
-        if (!loading && lastPost) {
-          setLoading(true);
-          const nextPosts = await firestore
-            .collection('posts')
-            .where('isArchived', '==', false)
-            .orderBy('date', 'desc')
-            .startAfter(lastPost)
-            .limit(3)
-            .get();
-
-          const nextPostsData = await Promise.all(
-            nextPosts.docs.map(async (doc) => {
-              const post = { id: doc.id, ...doc.data() };
-              const uploadsSnapshot = await doc.ref.collection('uploads').get();
-              post.uploads = uploadsSnapshot.docs.map((doc) => doc.data());
-              return post;
-            })
-          );
-
-          setPosts([...posts, ...nextPostsData]);
-          setLastPost(nextPosts.docs[nextPosts.docs.length - 1]);
-          setLoading(false);
-        }
+        await fetchNextPost();
       }
     };
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [posts, loading, lastPost]);
+  }, [posts, loading]);
 
   const filteredPosts = selectedTags.length === 4 || selectedTags.length === 0
     ? posts
@@ -78,12 +119,13 @@ const Timeline = ({ selectedTags }) => {
         )
       );
 
-  const handlePostClick = async (post) => {
+  const handlePostClick = async (post, index) => {
     if (!post.uploads) {
       const uploadsSnapshot = await firestore.collection('posts').doc(post.id).collection('uploads').get();
       post.uploads = uploadsSnapshot.docs.map((doc) => doc.data());
     }
     setSelectedPost(post);
+    setCurrentPostIndex(index);
     document.body.classList.add('modal-open');
   };
 
@@ -113,20 +155,6 @@ const Timeline = ({ selectedTags }) => {
           console.error('Could not copy link: ', err);
         }
       );
-    }
-  };
-
-  const videoRef = useRef(null);
-
-  const handleMouseOver = () => {
-    if (videoRef.current) {
-      videoRef.current.play();
-    }
-  };
-
-  const handleMouseOut = () => {
-    if (videoRef.current) {
-      videoRef.current.pause();
     }
   };
 
@@ -167,33 +195,29 @@ const Timeline = ({ selectedTags }) => {
           <div className="post">
             {post.coverImage && (
               post.coverImage.toLowerCase().includes('.mp4') || post.coverImage.toLowerCase().includes('.mov') ? (
-                <div
-                  onClick={() => handlePostClick(post)}
-                  onMouseOver={handleMouseOver}
-                  onMouseOut={handleMouseOut}
-                >
-                  {index === 0 ? (
-                    <video ref={videoRef} src={post.coverImage} muted />
+                <div onClick={() => handlePostClick(post, index)}>
+                  {index <= currentPostIndex + 1 ? (
+                    <video src={post.coverImage} muted />
                   ) : (
                     <LazyLoad offset={500}>
-                      <video ref={videoRef} src={post.coverImage} muted />
+                      <video src={post.coverImage} muted />
                     </LazyLoad>
                   )}
                   <div className="play-button"></div>
                 </div>
               ) : (
-                index === 0 ? (
+                index <= currentPostIndex + 1 ? (
                   <img
                     src={post.coverImage}
                     alt="Cover"
-                    onClick={() => handlePostClick(post)}
+                    onClick={() => handlePostClick(post, index)}
                   />
                 ) : (
                   <LazyLoad offset={500}>
                     <img
                       src={post.coverImage}
                       alt="Cover"
-                      onClick={() => handlePostClick(post)}
+                      onClick={() => handlePostClick(post, index)}
                     />
                   </LazyLoad>
                 )
@@ -206,7 +230,7 @@ const Timeline = ({ selectedTags }) => {
             </div>
             <div className="post-actions">
               <button onClick={() => handleShare(post)}>Share</button>
-              <button onClick={() => handlePostClick(post)}>View More</button>
+              <button onClick={() => handlePostClick(post, index)}>View More</button>
             </div>
           </div>
         </div>
