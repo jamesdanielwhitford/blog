@@ -3,12 +3,17 @@ import { useState, useEffect } from 'react';
 import LazyLoad from 'react-lazyload';
 import '../Timeline.css';
 
+const LoadingIndicator = () => {
+  return <div className="loading-indicator">Loading...</div>;
+};
+
 const Timeline = ({ selectedTags }) => {
   const [posts, setPosts] = useState([]);
   const [selectedPost, setSelectedPost] = useState(null);
   const [loading, setLoading] = useState(false);
   const [fullScreenImage, setFullScreenImage] = useState(null);
   const [currentPostIndex, setCurrentPostIndex] = useState(0);
+  const [hasMorePosts, setHasMorePosts] = useState(true);
 
   useEffect(() => {
     const fetchInitialPost = async () => {
@@ -69,7 +74,7 @@ const Timeline = ({ selectedTags }) => {
   }, [posts]);
 
   const fetchNextPost = async () => {
-    if (!loading && posts.length > 0) {
+    if (!loading && posts.length > 0 && hasMorePosts) {
       setLoading(true);
       const lastPostDate = posts[posts.length - 1].date;
       const nextPost = await firestore
@@ -91,6 +96,8 @@ const Timeline = ({ selectedTags }) => {
         );
 
         setPosts([...posts, ...nextPostData]);
+      } else {
+        setHasMorePosts(false);
       }
       setLoading(false);
     }
@@ -109,7 +116,7 @@ const Timeline = ({ selectedTags }) => {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [posts, loading]);
+  }, [posts, loading, hasMorePosts]);
 
   const filteredPosts = selectedTags.length === 4 || selectedTags.length === 0
     ? posts
@@ -286,7 +293,8 @@ const Timeline = ({ selectedTags }) => {
         </div>
       )}
 
-      {loading && <div>Loading...</div>}
+      {loading && <LoadingIndicator />}
+      {!loading && !hasMorePosts && <div className="no-more-posts">No more posts to load.</div>}
     </div>
   );
 };

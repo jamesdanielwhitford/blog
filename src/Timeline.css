@@ -218,3 +218,17 @@ body {
   max-height: 100vh;
   object-fit: contain;
 }
+
+.no-more-posts {
+  text-align: center;
+  padding: 20px;
+  font-size: 16px;
+  color: #888;
+}
+
+.loading-indicator {
+  text-align: center;
+  padding: 20px;
+  font-size: 18px;
+  color: #888;
+}
