@@ -32,9 +32,17 @@ const AdminView = ({ user }) => {
       .onSnapshot(async (snapshot) => {
         const postsData = await Promise.all(
           snapshot.docs.map(async (doc) => {
-            const post = { id: doc.id, ...doc.data() };
-            const uploadsSnapshot = await doc.ref.collection('uploads').get();
-            post.uploads = uploadsSnapshot.docs.map((doc) => doc.data());
+            const post = {
+              id: doc.id,
+              description: doc.data().description,
+              date: doc.data().date,
+              coverImage: doc.data().coverImage,
+              coverImageThumbnail: doc.data().coverImageThumbnail,
+              coverMimeType: doc.data().coverMimeType,
+              isArchived: doc.data().isArchived,
+              project: doc.data().project,
+              tags: doc.data().tags,
+            };
             return post;
           })
         );
@@ -115,12 +123,19 @@ const AdminView = ({ user }) => {
       }
 
       let coverImageUrl = existingPost.coverImage || null;
+      let coverImageThumbnailUrl = existingPost.coverImageThumbnail || null;
       let coverMimeType = null;
 
       if (formData.coverImage) {
         const coverImageRef = firebase.storage().ref(`${postId}/coverImage`);
         await coverImageRef.put(formData.coverImage);
         coverImageUrl = await coverImageRef.getDownloadURL();
+
+        const thumbnailRef = firebase.storage().ref(`${postId}/coverImageThumbnail`);
+        const thumbnailBlob = await resizeImage(formData.coverImage, 300, 300);
+        await thumbnailRef.put(thumbnailBlob);
+        coverImageThumbnailUrl = await thumbnailRef.getDownloadURL();
+
         coverMimeType = formData.coverImage.type;
       }
 
@@ -130,10 +145,20 @@ const AdminView = ({ user }) => {
         try {
           await storageRef.put(file);
           const downloadUrl = await storageRef.getDownloadURL();
+
+          let thumbnailUrl = null;
+          if (file.type.startsWith('video/')) {
+            const thumbnailBlob = await generateVideoThumbnail(file);
+            const thumbnailRef = firebase.storage().ref(`${postId}/${file.name}_thumbnail`);
+            await thumbnailRef.put(thumbnailBlob);
+            thumbnailUrl = await thumbnailRef.getDownloadURL();
+          }
+
           const uploadData = {
             url: downloadUrl,
             tags: formData.tags,
             mimeType: file.type,
+            thumbnailUrl: thumbnailUrl,
           };
           const uploadRef = await postRef.collection('uploads').add(uploadData);
           return { id: uploadRef.id, ...uploadData };
@@ -149,6 +174,7 @@ const AdminView = ({ user }) => {
         description: formData.description || existingPost.description || '',
         date: postDate,
         coverImage: coverImageUrl,
+        coverImageThumbnail: coverImageThumbnailUrl,
         coverMimeType: coverMimeType,
         isArchived: existingPost.isArchived || false,
         project: formData.project,
@@ -174,6 +200,60 @@ const AdminView = ({ user }) => {
       console.error('Error submitting form:', error);
     }
     setLoading(false);
+  };
+
+  const resizeImage = async (file, maxWidth, maxHeight) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxWidth) {
+            height *= maxWidth / width;
+            width = maxWidth;
+          }
+
+          if (height > maxHeight) {
+            width *= maxHeight / height;
+            height = maxHeight;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          ctx.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob((blob) => {
+            resolve(blob);
+          }, file.type);
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const generateVideoThumbnail = async (file) => {
+    return new Promise((resolve) => {
+      const video = document.createElement('video');
+      video.src = URL.createObjectURL(file);
+      video.addEventListener('loadedmetadata', () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob((blob) => {
+          resolve(blob);
+        }, 'image/jpeg');
+      });
+    });
   };
 
   const handleEdit = async (postId) => {
@@ -331,28 +411,26 @@ const AdminView = ({ user }) => {
       <div>
         {posts.map((post) => (
           <div key={post.id} className="post">
-{post.coverImage && (
-  <LazyLoad>
-    {post.coverMimeType.startsWith('video/') ? (
-      <video
-        src={post.coverImage}
-        alt="Cover"
-        onClick={() => handleEdit(post.id)}
-        className="post-cover-image"
-        autoPlay
-        loop
-        muted
-      />
-    ) : (
-      <img
-        src={post.coverImage}
-        alt="Cover"
-        onClick={() => handleEdit(post.id)}
-        className="post-cover-image"
-      />
-    )}
-  </LazyLoad>
-)}
+            {post.coverImage && (
+              <LazyLoad offset={500}>
+                {post.coverMimeType.startsWith('video/') ? (
+                  <video
+                    src={post.coverImage}
+                    alt="Cover"
+                    onClick={() => handleEdit(post.id)}
+                    className="post-cover-image"
+                    poster={post.coverImageThumbnail}
+                  />
+                ) : (
+                  <img
+                    src={post.coverImage}
+                    alt="Cover"
+                    onClick={() => handleEdit(post.id)}
+                    className="post-cover-image"
+                  />
+                )}
+              </LazyLoad>
+            )}
             <div className="post-info">
               <h2>{post.description}</h2>
               <p>{post.date.toDate().toLocaleString()}</p>

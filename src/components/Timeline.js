@@ -16,62 +16,32 @@ const Timeline = ({ selectedTags }) => {
   const [hasMorePosts, setHasMorePosts] = useState(true);
 
   useEffect(() => {
-    const fetchInitialPost = async () => {
+    const fetchInitialPosts = async () => {
       setLoading(true);
-      const initialPost = await firestore
+      const initialPosts = await firestore
         .collection('posts')
         .where('isArchived', '==', false)
         .orderBy('date', 'desc')
-        .limit(1)
+        .limit(5)
         .get();
 
-      const initialPostData = await Promise.all(
-        initialPost.docs.map(async (doc) => {
-          const post = { id: doc.id, ...doc.data() };
-          const uploadsSnapshot = await doc.ref.collection('uploads').get();
-          post.uploads = uploadsSnapshot.docs.map((doc) => doc.data());
+      const initialPostsData = await Promise.all(
+        initialPosts.docs.map(async (doc) => {
+          const post = {
+            id: doc.id,
+            ...doc.data(),
+            uploads: [],
+          };
           return post;
         })
       );
 
-      setPosts(initialPostData);
+      setPosts(initialPostsData);
       setLoading(false);
     };
 
-    fetchInitialPost();
+    fetchInitialPosts();
   }, []);
-
-  useEffect(() => {
-    const fetchSecondPost = async () => {
-      if (posts.length === 1) {
-        setLoading(true);
-        const lastPostDate = posts[0].date;
-        const secondPost = await firestore
-          .collection('posts')
-          .where('isArchived', '==', false)
-          .orderBy('date', 'desc')
-          .startAfter(lastPostDate)
-          .limit(1)
-          .get();
-
-        if (!secondPost.empty) {
-          const secondPostData = await Promise.all(
-            secondPost.docs.map(async (doc) => {
-              const post = { id: doc.id, ...doc.data() };
-              const uploadsSnapshot = await doc.ref.collection('uploads').get();
-              post.uploads = uploadsSnapshot.docs.map((doc) => doc.data());
-              return post;
-            })
-          );
-
-          setPosts([...posts, ...secondPostData]);
-        }
-        setLoading(false);
-      }
-    };
-
-    fetchSecondPost();
-  }, [posts]);
 
   const fetchNextPost = useCallback(async () => {
     if (!loading && posts.length > 0 && hasMorePosts) {
@@ -86,14 +56,11 @@ const Timeline = ({ selectedTags }) => {
         .get();
 
       if (!nextPost.empty) {
-        const nextPostData = await Promise.all(
-          nextPost.docs.map(async (doc) => {
-            const post = { id: doc.id, ...doc.data() };
-            const uploadsSnapshot = await doc.ref.collection('uploads').get();
-            post.uploads = uploadsSnapshot.docs.map((doc) => doc.data());
-            return post;
-          })
-        );
+        const nextPostData = nextPost.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+          uploads: [],
+        }));
 
         setPosts([...posts, ...nextPostData]);
       } else {
@@ -104,30 +71,28 @@ const Timeline = ({ selectedTags }) => {
   }, [loading, posts, hasMorePosts]);
 
   useEffect(() => {
-    const handleScroll = async () => {
+    const handleScroll = () => {
       const scrollTop = document.documentElement.scrollTop;
       const windowHeight = window.innerHeight;
       const documentHeight = document.documentElement.offsetHeight;
 
-      if (scrollTop + windowHeight >= documentHeight - windowHeight * 0.6) {
-        await fetchNextPost();
+      if (scrollTop + windowHeight >= documentHeight - windowHeight * 0.5 && !loading) {
+        fetchNextPost();
       }
     };
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [fetchNextPost]);
+  }, [fetchNextPost, loading]);
 
   const filteredPosts = selectedTags.length === 4 || selectedTags.length === 0
     ? posts
     : posts.filter((post) =>
-        post.uploads.some((upload) =>
-          upload.tags && upload.tags.some((tag) => selectedTags.includes(tag))
-        )
+        post.tags && post.tags.some((tag) => selectedTags.includes(tag))
       );
 
   const handlePostClick = async (post, index) => {
-    if (!post.uploads) {
+    if (!post.uploads || post.uploads.length === 0) {
       const uploadsSnapshot = await firestore.collection('posts').doc(post.id).collection('uploads').get();
       post.uploads = uploadsSnapshot.docs.map((doc) => doc.data());
     }
@@ -203,31 +168,27 @@ const Timeline = ({ selectedTags }) => {
             {post.coverImage && (
               post.coverMimeType && post.coverMimeType.startsWith('video/') ? (
                 <div onClick={() => handlePostClick(post, index)}>
-                  {index <= currentPostIndex + 1 ? (
-                    <video src={post.coverImage} poster loop muted />
-                  ) : (
-                    <LazyLoad offset={500}>
-                      <video src={post.coverImage} poster loop muted />
-                    </LazyLoad>
-                  )}
-                  <div className="play-button"></div>
+                  <LazyLoad offset={500}>
+                    <video
+                      src={post.coverImage}
+                      poster={post.coverImageThumbnail}
+                      preload="none"
+                      width="640"
+                      height="360"
+                    />
+                    <div className="play-button"></div>
+                  </LazyLoad>
                 </div>
               ) : (
-                index <= currentPostIndex + 1 ? (
+                <LazyLoad offset={500}>
                   <img
                     src={post.coverImage}
                     alt="Cover"
                     onClick={() => handlePostClick(post, index)}
+                    width="640"
+                    height="360"
                   />
-                ) : (
-                  <LazyLoad offset={500}>
-                    <img
-                      src={post.coverImage}
-                      alt="Cover"
-                      onClick={() => handlePostClick(post, index)}
-                    />
-                  </LazyLoad>
-                )
+                </LazyLoad>
               )
             )}
             <div className="post-info">
@@ -256,12 +217,23 @@ const Timeline = ({ selectedTags }) => {
               {selectedPost.coverImage && (
                 <div className="modal-cover-image">
                   {selectedPost.coverMimeType && selectedPost.coverMimeType.startsWith('video/') ? (
-                    <video src={selectedPost.coverImage} poster loop muted controls />
+                    <video
+                      src={selectedPost.coverImage}
+                      poster={selectedPost.coverImageThumbnail}
+                      loop
+                      muted
+                      controls
+                      preload="none"
+                      width="640"
+                      height="360"
+                    />
                   ) : (
                     <img
                       src={selectedPost.coverImage}
                       alt="Cover"
                       onClick={() => openFullScreenImage(selectedPost.coverImage)}
+                      width="640"
+                      height="360"
                     />
                   )}
                 </div>
@@ -271,12 +243,12 @@ const Timeline = ({ selectedTags }) => {
                   {upload.mimeType.startsWith('image/') ? (
                     <div onClick={() => openFullScreenImage(upload.url)}>
                       <LazyLoad>
-                        <img src={upload.url} alt={`Upload ${index + 1}`} />
+                        <img src={upload.url} alt={`Upload ${index + 1}`} width="640" height="360" />
                       </LazyLoad>
                     </div>
                   ) : (
                     <LazyLoad>
-                      <video poster loop muted controls>
+                      <video poster={upload.thumbnailUrl} loop muted controls preload="none" width="640" height="360">
                         <source src={upload.url} type={upload.mimeType} />
                         Your browser does not support the video tag.
                       </video>
