@@ -201,13 +201,13 @@ const Timeline = ({ selectedTags }) => {
         <div key={post.id} className="post-container">
           <div className="post">
             {post.coverImage && (
-              post.coverImage.toLowerCase().includes('.mp4') || post.coverImage.toLowerCase().includes('.mov') ? (
+              post.coverMimeType && post.coverMimeType.startsWith('video/') ? (
                 <div onClick={() => handlePostClick(post, index)}>
                   {index <= currentPostIndex + 1 ? (
-                    <video src={post.coverImage} muted />
+                    <video src={post.coverImage} poster loop muted />
                   ) : (
                     <LazyLoad offset={500}>
-                      <video src={post.coverImage} muted />
+                      <video src={post.coverImage} poster loop muted />
                     </LazyLoad>
                   )}
                   <div className="play-button"></div>
@@ -254,17 +254,21 @@ const Timeline = ({ selectedTags }) => {
             </div>
             <div className="modal-body">
               {selectedPost.coverImage && (
-                <div className="modal-cover-image" onClick={() => openFullScreenImage(selectedPost.coverImage)}>
-                  {selectedPost.coverImage.toLowerCase().includes('.mp4') || selectedPost.coverImage.toLowerCase().includes('.mov') ? (
-                    <video src={selectedPost.coverImage} controls />
+                <div className="modal-cover-image">
+                  {selectedPost.coverMimeType && selectedPost.coverMimeType.startsWith('video/') ? (
+                    <video src={selectedPost.coverImage} poster loop muted controls />
                   ) : (
-                    <img src={selectedPost.coverImage} alt="Cover" />
+                    <img
+                      src={selectedPost.coverImage}
+                      alt="Cover"
+                      onClick={() => openFullScreenImage(selectedPost.coverImage)}
+                    />
                   )}
                 </div>
               )}
               {selectedPost.uploads && selectedPost.uploads.map((upload, index) => (
                 <div key={index} className="modal-media-item">
-                  {upload.url.includes('.jpg') || upload.url.includes('.png') || upload.url.includes('.gif') ? (
+                  {upload.mimeType.startsWith('image/') ? (
                     <div onClick={() => openFullScreenImage(upload.url)}>
                       <LazyLoad>
                         <img src={upload.url} alt={`Upload ${index + 1}`} />
@@ -272,8 +276,8 @@ const Timeline = ({ selectedTags }) => {
                     </div>
                   ) : (
                     <LazyLoad>
-                      <video controls>
-                        <source src={upload.url} type="video/mp4" />
+                      <video poster loop muted controls>
+                        <source src={upload.url} type={upload.mimeType} />
                         Your browser does not support the video tag.
                       </video>
                     </LazyLoad>
