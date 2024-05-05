@@ -28,7 +28,7 @@ const AdminView = ({ user }) => {
   useEffect(() => {
     const unsubscribe = firestore
       .collection('posts')
-      .orderBy('date', 'desc') // Order by date in descending order
+      .orderBy('date', 'desc')
       .onSnapshot(async (snapshot) => {
         const postsData = await Promise.all(
           snapshot.docs.map(async (doc) => {
@@ -41,7 +41,7 @@ const AdminView = ({ user }) => {
         setPosts(postsData);
         setLoading(false);
       });
-  
+
     return unsubscribe;
   }, []);
 
@@ -79,7 +79,7 @@ const AdminView = ({ user }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     if (
       !formData.description &&
       (formData.imageUrls.length === 0 &&
@@ -92,36 +92,38 @@ const AdminView = ({ user }) => {
     } else {
       setErrorMessage('');
     }
-  
+
     const auth = getAuth();
     const user = auth.currentUser;
-  
+
     if (!user) {
       setErrorMessage('User not authenticated. Please sign in to upload files.');
       return;
     }
-  
+
     setLoading(true);
     try {
       const postDate = new Date(formData.date);
       const postId = `${postDate.getFullYear()}-${postDate.getMonth() + 1}-${postDate.getDate()}-${postDate.getTime()}`;
-  
+
       const postRef = firestore.collection('posts').doc(postId);
       const postDoc = await postRef.get();
-  
+
       let existingPost = {};
       if (postDoc.exists) {
         existingPost = postDoc.data();
       }
-  
+
       let coverImageUrl = existingPost.coverImage || null;
-  
+      let coverMimeType = null;
+
       if (formData.coverImage) {
         const coverImageRef = firebase.storage().ref(`${postId}/coverImage`);
         await coverImageRef.put(formData.coverImage);
         coverImageUrl = await coverImageRef.getDownloadURL();
+        coverMimeType = formData.coverImage.type;
       }
-  
+
       const files = [...e.target.imageUpload.files, ...e.target.videoUpload.files];
       const uploads = files.map(async (file) => {
         const storageRef = firebase.storage().ref(`${postId}/${file.name}`);
@@ -130,7 +132,8 @@ const AdminView = ({ user }) => {
           const downloadUrl = await storageRef.getDownloadURL();
           const uploadData = {
             url: downloadUrl,
-            tags: formData.tags, // Use the selected tags from formData
+            tags: formData.tags,
+            mimeType: file.type,
           };
           const uploadRef = await postRef.collection('uploads').add(uploadData);
           return { id: uploadRef.id, ...uploadData };
@@ -139,21 +142,22 @@ const AdminView = ({ user }) => {
           throw error;
         }
       });
-  
+
       await Promise.all(uploads);
-  
+
       const postData = {
         description: formData.description || existingPost.description || '',
         date: postDate,
         coverImage: coverImageUrl,
+        coverMimeType: coverMimeType,
         isArchived: existingPost.isArchived || false,
         project: formData.project,
-        tags: formData.tags, // Add the selected tags to the post data
+        tags: formData.tags,
       };
-  
+
       await postRef.set(postData);
       setSuccessMessage('Post saved successfully.');
-  
+
       setFormData({
         description: '',
         date: new Date(),
@@ -282,7 +286,7 @@ const AdminView = ({ user }) => {
                   id="coverImageUpload"
                   type="file"
                   name="coverImage"
-                  accept="image/*"
+                  accept="image/*, video/*"
                   onChange={handleCoverImageChange}
                 />
               </div>
@@ -327,16 +331,28 @@ const AdminView = ({ user }) => {
       <div>
         {posts.map((post) => (
           <div key={post.id} className="post">
-            {post.coverImage && (
-              <LazyLoad>
-                <img
-                  src={post.coverImage}
-                  alt="Cover"
-                  onClick={() => handleEdit(post.id)}
-                  className="post-cover-image"
-                />
-              </LazyLoad>
-            )}
+{post.coverImage && (
+  <LazyLoad>
+    {post.coverMimeType.startsWith('video/') ? (
+      <video
+        src={post.coverImage}
+        alt="Cover"
+        onClick={() => handleEdit(post.id)}
+        className="post-cover-image"
+        autoPlay
+        loop
+        muted
+      />
+    ) : (
+      <img
+        src={post.coverImage}
+        alt="Cover"
+        onClick={() => handleEdit(post.id)}
+        className="post-cover-image"
+      />
+    )}
+  </LazyLoad>
+)}
             <div className="post-info">
               <h2>{post.description}</h2>
               <p>{post.date.toDate().toLocaleString()}</p>
