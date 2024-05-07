@@ -160,6 +160,22 @@ const Timeline = ({ selectedTags }) => {
     }
   }, [selectedPost]);
 
+  const renderMedia = (upload, index) => {
+    if (upload.mimeType.startsWith('image/')) {
+      const imageUrl = window.innerWidth <= 640 ? upload.mobileUrl : window.innerWidth <= 1280 ? upload.laptopUrl : upload.url;
+      return <img src={imageUrl} alt={`Upload ${index + 1}`} />;
+    } else if (upload.mimeType.startsWith('video/')) {
+      return (
+        <video controls preload="none">
+          <source src={upload.url} type={upload.mimeType} />
+          Your browser does not support the video tag.
+        </video>
+      );
+    }
+    return null;
+  };
+
+
   return (
     <div>
       {filteredPosts.map((post, index) => (
@@ -240,21 +256,10 @@ const Timeline = ({ selectedTags }) => {
               )}
               {selectedPost.uploads && selectedPost.uploads.map((upload, index) => (
                 <div key={index} className="modal-media-item">
-                  {upload.mimeType.startsWith('image/') ? (
-                    <div onClick={() => openFullScreenImage(upload.url)}>
-                      <LazyLoad>
-                        <img src={upload.url} alt={`Upload ${index + 1}`} width="640" height="360" />
-                      </LazyLoad>
-                    </div>
-                  ) : (
-                    <LazyLoad>
-                      <video poster={upload.thumbnailUrl} loop muted controls preload="none" width="640" height="360">
-                        <source src={upload.url} type={upload.mimeType} />
-                        Your browser does not support the video tag.
-                      </video>
-                    </LazyLoad>
-                  )}
-                </div>
+                {renderMedia(upload, index)}
+                {upload.dateTime && <p>Date: {upload.dateTime}</p>}
+                {upload.location && <p>Location: {upload.location}</p>}
+              </div>
               ))}
             </div>
           </div>

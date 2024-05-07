@@ -9,14 +9,14 @@
   left: 0;
   right: 0;
   z-index: 1;
-  background-color: white;
+  background-color: var(--modal-bg-color);
 }
 
 .tag {
   margin: 5px;
   cursor: pointer;
   font-size: 16px;
-  color: #333;
+  color: var(--text-color);
   text-decoration: underline transparent;
   padding: 4px 0;
   line-height: 1.2;
@@ -28,7 +28,7 @@
 .tag.selected {
   font-weight: bold;
   text-decoration: underline;
-  text-decoration-color: #333;
+  text-decoration-color: var(--text-color);
 }
 
 @media screen and (max-width: 600px) {
@@ -41,7 +41,7 @@
 
   .tag {
     margin: 0 12px;
-    font-size: 18px; /* Increase the font size for small screens */
+    font-size: 18px;
   }
 }
 
@@ -52,6 +52,6 @@
 
   .tag {
     margin: 0 10px;
-    font-size: 16px; /* Adjust the font size for very small screens */
+    font-size: 16px;
   }
 }
