@@ -171,6 +171,15 @@ const Timeline = ({ selectedTags }) => {
           Your browser does not support the video tag.
         </video>
       );
+    } else if (upload.mimeType.startsWith('application/pdf')) {
+      return (
+        <div>
+          <iframe src={upload.url} width="100%" height="500px"></iframe>
+          <a href={upload.url} target="_blank" rel="noopener noreferrer">
+            Open PDF in a new tab
+          </a>
+        </div>
+      );
     }
     return null;
   };

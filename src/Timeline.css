@@ -181,6 +181,11 @@ body {
   margin-bottom: 20px;
 }
 
+.modal-media-item iframe {
+  border: none;
+  margin-bottom: 10px;
+}
+
 .modal-media-item img,
 .modal-media-item video {
   max-width: 100%;

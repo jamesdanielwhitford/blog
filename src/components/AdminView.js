@@ -152,14 +152,18 @@ const AdminView = () => {
         coverMimeType = formData.coverImage.type;
       }
 
-      const files = [...e.target.imageUpload.files, ...e.target.videoUpload.files];
+      const files = [...e.target.imageUpload.files, ...e.target.videoUpload.files, ...e.target.pdfUpload.files];
       const uploads = files.map(async (file) => {
         const storageRef = firebase.storage().ref(`${postId}/${file.name}`);
         const metadata = {
           customMetadata: {},
         };
 
-        if (file.type.startsWith('image/')) {
+        if (file.type.startsWith('application/pdf')) {
+          metadata.customMetadata.mimeType = file.type;
+          metadata.customMetadata.dateTime = new Date().toISOString();
+          metadata.customMetadata.location = '37.7749, -122.4194'; // Example: San Francisco coordinates
+        } else if (file.type.startsWith('image/')) {
           await new Promise((resolve) => {
             EXIF.getData(file, function () {
               const exifData = EXIF.getAllTags(this);
@@ -446,6 +450,10 @@ const AdminView = () => {
           <label htmlFor="videoUpload">Upload Videos:</label>
           <input id="videoUpload" type="file" name="videoUrls" multiple accept="video/*" />
         </div>
+        <div>
+  <label htmlFor="pdfUpload">Upload PDFs:</label>
+  <input id="pdfUpload" type="file" name="pdfUrls" multiple accept="application/pdf" />
+</div>
         <div>
           <label>Tags:</label>
           {['Philosophy', 'Gardens', 'Ceramics', 'Human Computer Interaction'].map((tag) => (
