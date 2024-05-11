@@ -207,7 +207,7 @@ const Timeline = ({ selectedTags }) => {
               ) : (
                 <LazyLoad offset={500}>
                   <img
-                    src={post.coverImage}
+                    src={window.innerWidth <= 640 ? post.mobileCoverImage : window.innerWidth <= 1280 ? post.laptopCoverImage : post.coverImage}
                     alt="Cover"
                     onClick={() => handlePostClick(post, index)}
                     width="640"

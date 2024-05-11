@@ -8,6 +8,7 @@ import LazyLoad from 'react-lazyload';
 import '../AdminView.css';
 import EXIF from 'exif-js';
 
+
 const AdminView = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -100,70 +101,74 @@ const AdminView = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (
-      !formData.description &&
-      (formData.imageUrls.length === 0 &&
-        formData.videoUrls.length === 0 &&
-        e.target.imageUpload.files.length === 0 &&
-        e.target.videoUpload.files.length === 0)
-    ) {
-      setErrorMessage('Please enter a description or upload at least one image or video.');
+  
+    if (!formData.description && e.target.imageUpload.files.length === 0) {
+      setErrorMessage('Please enter a description or upload at least one image.');
       return;
     } else {
       setErrorMessage('');
     }
-
+  
     const auth = getAuth();
     const user = auth.currentUser;
-
+  
     if (!user) {
       setErrorMessage('User not authenticated. Please sign in to upload files.');
       return;
     }
-
+  
     setLoading(true);
     try {
       const postDate = new Date(formData.date);
       const postId = `${postDate.getFullYear()}-${postDate.getMonth() + 1}-${postDate.getDate()}-${postDate.getTime()}`;
-
+  
       const postRef = firestore.collection('posts').doc(postId);
       const postDoc = await postRef.get();
-
+  
       let existingPost = {};
       if (postDoc.exists) {
         existingPost = postDoc.data();
       }
-
+  
       let coverImageUrl = existingPost.coverImage || null;
       let coverImageThumbnailUrl = existingPost.coverImageThumbnail || null;
+      let mobileCoverImageUrl = existingPost.mobileCoverImage || null;
+      let laptopCoverImageUrl = existingPost.laptopCoverImage || null;
       let coverMimeType = null;
-
-      if (formData.coverImage) {
+  
+      const files = [...e.target.imageUpload.files];
+  
+      if (files.length > 0) {
+        const coverImage = files[0];
         const coverImageRef = firebase.storage().ref(`${postId}/coverImage`);
-        await coverImageRef.put(formData.coverImage);
+        await coverImageRef.put(coverImage);
         coverImageUrl = await coverImageRef.getDownloadURL();
-
+  
         const thumbnailRef = firebase.storage().ref(`${postId}/coverImageThumbnail`);
-        const thumbnailBlob = await resizeImage(formData.coverImage, 300, 300);
+        const thumbnailBlob = await resizeImage(coverImage, 300, 300);
         await thumbnailRef.put(thumbnailBlob);
         coverImageThumbnailUrl = await thumbnailRef.getDownloadURL();
-
-        coverMimeType = formData.coverImage.type;
+  
+        const mobileCoverImageRef = firebase.storage().ref(`${postId}/mobileCoverImage`);
+        const mobileCoverImageBlob = await resizeImage(coverImage, 640, 360);
+        await mobileCoverImageRef.put(mobileCoverImageBlob);
+        mobileCoverImageUrl = await mobileCoverImageRef.getDownloadURL();
+  
+        const laptopCoverImageRef = firebase.storage().ref(`${postId}/laptopCoverImage`);
+        const laptopCoverImageBlob = await resizeImage(coverImage, 1280, 720);
+        await laptopCoverImageRef.put(laptopCoverImageBlob);
+        laptopCoverImageUrl = await laptopCoverImageRef.getDownloadURL();
+  
+        coverMimeType = coverImage.type;
       }
-
-      const files = [...e.target.imageUpload.files, ...e.target.videoUpload.files, ...e.target.pdfUpload.files];
+  
       const uploads = files.map(async (file) => {
         const storageRef = firebase.storage().ref(`${postId}/${file.name}`);
         const metadata = {
           customMetadata: {},
         };
-
-        if (file.type.startsWith('application/pdf')) {
-          metadata.customMetadata.mimeType = file.type;
-          metadata.customMetadata.dateTime = new Date().toISOString();
-          metadata.customMetadata.location = '37.7749, -122.4194'; // Example: San Francisco coordinates
-        } else if (file.type.startsWith('image/')) {
+  
+        if (file.type.startsWith('image/')) {
           await new Promise((resolve) => {
             EXIF.getData(file, function () {
               const exifData = EXIF.getAllTags(this);
@@ -184,33 +189,29 @@ const AdminView = () => {
           metadata.customMetadata.dateTime = new Date().toISOString();
           metadata.customMetadata.location = '37.7749, -122.4194'; // Example: San Francisco coordinates
         }
-
+  
         try {
           await storageRef.put(file, metadata);
           const downloadUrl = await storageRef.getDownloadURL();
-
+  
           const mobileRef = firebase.storage().ref(`${postId}/${file.name}_mobile`);
           const laptopRef = firebase.storage().ref(`${postId}/${file.name}_laptop`);
-
+  
           if (file.type.startsWith('image/')) {
             const mobileBlob = await resizeImage(file, 640, 360);
             await mobileRef.put(mobileBlob, metadata);
             const mobileUrl = await mobileRef.getDownloadURL();
-
+  
             const laptopBlob = await resizeImage(file, 1280, 720);
             await laptopRef.put(laptopBlob, metadata);
             const laptopUrl = await laptopRef.getDownloadURL();
-
+  
             metadata.customMetadata.mobileUrl = mobileUrl;
             metadata.customMetadata.laptopUrl = laptopUrl;
-          } else if (file.type.startsWith('video/')) {
-            // You can use a video processing library like FFmpeg to generate lower-resolution versions of the video
-            // and upload them to mobileRef and laptopRef, similar to how it's done for images.
-            // For simplicity, let's assume you're only uploading the original video for now.
           }
-
+  
           await storageRef.updateMetadata(metadata);
-
+  
           const uploadData = {
             url: downloadUrl,
             mobileUrl: metadata.customMetadata.mobileUrl || null,
@@ -220,7 +221,7 @@ const AdminView = () => {
             tags: formData.tags,
             mimeType: file.type,
           };
-
+  
           const uploadRef = await postRef.collection('uploads').add(uploadData);
           return { id: uploadRef.id, ...uploadData };
         } catch (error) {
@@ -228,32 +229,32 @@ const AdminView = () => {
           throw error;
         }
       });
-
+  
       await Promise.all(uploads);
-
+  
       const postData = {
         description: formData.description || existingPost.description || '',
         date: postDate,
         coverImage: coverImageUrl,
         coverImageThumbnail: coverImageThumbnailUrl,
+        mobileCoverImage: mobileCoverImageUrl,
+        laptopCoverImage: laptopCoverImageUrl,
         coverMimeType: coverMimeType,
         isArchived: existingPost.isArchived || false,
         project: formData.project,
         tags: formData.tags,
       };
-
+  
       await postRef.set(postData);
       setSuccessMessage('Post saved successfully.');
-
+  
       setFormData({
         description: '',
         date: new Date(),
         imageUrls: [],
-        videoUrls: [],
         tags: [],
         isArchived: false,
         project: '',
-        coverImage: null,
       });
       setShowModal(false);
     } catch (error) {
@@ -410,13 +411,13 @@ const AdminView = () => {
       {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
 
       {showModal && (
-  <div className="modal">
-    <div className="modal-content">
-      <span className="close" onClick={() => setShowModal(false)}>
-        &times;
-      </span>
+        <div className="modal">
+          <div className="modal-content">
+            <span className="close" onClick={() => setShowModal(false)}>
+              &times;
+            </span>
 
-      <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit}>
         <input
           type="text"
           name="description"
@@ -431,29 +432,11 @@ const AdminView = () => {
           onChange={handleFormChange}
         />
 
-        <div>
-          <label htmlFor="coverImageUpload">Upload Cover Image:</label>
-          <input
-            id="coverImageUpload"
-            type="file"
-            name="coverImage"
-            accept="image/*, video/*"
-            onChange={handleCoverImageChange}
-          />
-        </div>
+              <div>
+                <label htmlFor="imageUpload">Upload Images:</label>
+                <input id="imageUpload" type="file" name="imageUrls" multiple accept="image/*" />
+              </div>
 
-        <div>
-          <label htmlFor="imageUpload">Upload Images:</label>
-          <input id="imageUpload" type="file" name="imageUrls" multiple accept="image/*" />
-        </div>
-        <div>
-          <label htmlFor="videoUpload">Upload Videos:</label>
-          <input id="videoUpload" type="file" name="videoUrls" multiple accept="video/*" />
-        </div>
-        <div>
-  <label htmlFor="pdfUpload">Upload PDFs:</label>
-  <input id="pdfUpload" type="file" name="pdfUrls" multiple accept="application/pdf" />
-</div>
         <div>
           <label>Tags:</label>
           {['Philosophy', 'Gardens', 'Ceramics', 'Human Computer Interaction'].map((tag) => (
