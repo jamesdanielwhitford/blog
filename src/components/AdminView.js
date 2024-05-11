@@ -26,6 +26,8 @@ const AdminView = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [imageLinks, setImageLinks] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -101,7 +103,7 @@ const AdminView = () => {
     }
   };
 
-  const [selectedImages, setSelectedImages] = useState([]);
+
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
@@ -123,6 +125,13 @@ const AdminView = () => {
     Promise.all(imagePromises).then((images) => {
       setSelectedImages((prevImages) => [...prevImages, ...images]);
     });
+  };
+
+  const handleImageLinkChange = (index, link) => {
+    setImageLinks((prevLinks) => ({
+      ...prevLinks,
+      [index]: link,
+    }));
   };
   
   const handleImageDateChange = (index, dateTime) => {
@@ -202,45 +211,47 @@ const AdminView = () => {
         coverMimeType = coverImage.type;
       }
   
-      const uploads = selectedImages.map(async (image) => {
+      const uploads = selectedImages.map(async (image, index) => {
         const storageRef = firebase.storage().ref(`${postId}/${image.file.name}`);
         const metadata = {
           customMetadata: {
             dateTime: image.dateTime,
             location: image.location,
+            link: imageLinks[index] || '',
           },
         };
-  
+      
         try {
           await storageRef.put(image.file, metadata);
           const downloadUrl = await storageRef.getDownloadURL();
-  
+      
           const mobileRef = firebase.storage().ref(`${postId}/${image.file.name}_mobile`);
           const laptopRef = firebase.storage().ref(`${postId}/${image.file.name}_laptop`);
-  
+      
           const mobileBlob = await resizeImage(image.file, 640, 360);
           await mobileRef.put(mobileBlob, metadata);
           const mobileUrl = await mobileRef.getDownloadURL();
-  
+      
           const laptopBlob = await resizeImage(image.file, 1280, 720);
           await laptopRef.put(laptopBlob, metadata);
           const laptopUrl = await laptopRef.getDownloadURL();
-  
+      
           metadata.customMetadata.mobileUrl = mobileUrl;
           metadata.customMetadata.laptopUrl = laptopUrl;
-  
+      
           await storageRef.updateMetadata(metadata);
-  
+      
           const uploadData = {
             url: downloadUrl,
             mobileUrl: mobileUrl,
             laptopUrl: laptopUrl,
             dateTime: image.dateTime,
             location: image.location,
+            link: imageLinks[index] || '', // Add the link to the uploadData object
             tags: formData.tags,
             mimeType: image.file.type,
           };
-  
+      
           const uploadRef = await postRef.collection('uploads').add(uploadData);
           return { id: uploadRef.id, ...uploadData };
         } catch (error) {
@@ -484,24 +495,30 @@ const AdminView = () => {
         <input id="imageUpload" type="file" name="imageUrls" multiple accept="image/*" onChange={handleImageChange} />
       </div>
       <div className="selected-images">
-        {selectedImages.map((image, index) => (
-          <div key={index} className="selected-image">
-            <img src={image.url} alt={`Selected ${index}`} />
-            <input
-              type="date"
-              placeholder="Date"
-              value={image.dateTime}
-              onChange={(e) => handleImageDateChange(index, e.target.value)}
-            />
-            <input
-              type="text"
-              placeholder="Location"
-              value={image.location}
-              onChange={(e) => handleImageLocationChange(index, e.target.value)}
-            />
-          </div>
-        ))}
-      </div>
+  {selectedImages.map((image, index) => (
+    <div key={index} className="selected-image">
+      <img src={image.url} alt={`Selected ${index}`} />
+      <input
+        type="date"
+        placeholder="Date"
+        value={image.dateTime}
+        onChange={(e) => handleImageDateChange(index, e.target.value)}
+      />
+      <input
+        type="text"
+        placeholder="Location"
+        value={image.location}
+        onChange={(e) => handleImageLocationChange(index, e.target.value)}
+      />
+      <input
+        type="text"
+        placeholder="Link (e.g., YouTube URL)"
+        value={imageLinks[index] || ''}
+        onChange={(e) => handleImageLinkChange(index, e.target.value)}
+      />
+    </div>
+  ))}
+</div>
 
 
         <button type="submit" disabled={loading}>

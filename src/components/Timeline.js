@@ -14,6 +14,9 @@ const Timeline = ({ selectedTags }) => {
   const [fullScreenImage, setFullScreenImage] = useState(null);
   const [currentPostIndex, setCurrentPostIndex] = useState(0);
   const [hasMorePosts, setHasMorePosts] = useState(true);
+  const [fullScreenLink, setFullScreenLink] = useState(null);
+  const [fullScreenVideo, setFullScreenVideo] = useState(null);
+const [fullScreenPDF, setFullScreenPDF] = useState(null);
 
   useEffect(() => {
     const fetchInitialPosts = async () => {
@@ -129,13 +132,24 @@ const Timeline = ({ selectedTags }) => {
       );
     }
   };
-
-  const openFullScreenImage = (imageUrl) => {
-    setFullScreenImage(imageUrl);
+  const openFullScreenImage = (url, link) => {
+    if (link) {
+      // Open the link in the full-screen modal
+      setFullScreenLink(link);
+    } else {
+      // Open the full-sized image
+      setFullScreenImage(url);
+    }
   };
 
   const closeFullScreenImage = () => {
     setFullScreenImage(null);
+  };
+
+  const closeFullScreenContent = () => {
+    setFullScreenImage(null);
+    setFullScreenVideo(null);
+    setFullScreenPDF(null);
   };
 
   const preloadImage = (url) => {
@@ -163,17 +177,23 @@ const Timeline = ({ selectedTags }) => {
   const renderMedia = (upload, index) => {
     if (upload.mimeType.startsWith('image/')) {
       const imageUrl = window.innerWidth <= 640 ? upload.mobileUrl : window.innerWidth <= 1280 ? upload.laptopUrl : upload.url;
-      return <img src={imageUrl} alt={`Upload ${index + 1}`} />;
+      return (
+        <img
+          src={imageUrl}
+          alt={`Upload ${index + 1}`}
+          onClick={() => openFullScreenImage(upload.url, upload.link, upload.mimeType)}
+        />
+      );
     } else if (upload.mimeType.startsWith('video/')) {
       return (
-        <video controls preload="none">
+        <video controls preload="none" onClick={() => openFullScreenImage(null, upload.url, upload.mimeType)}>
           <source src={upload.url} type={upload.mimeType} />
           Your browser does not support the video tag.
         </video>
       );
     } else if (upload.mimeType.startsWith('application/pdf')) {
       return (
-        <div>
+        <div onClick={() => openFullScreenImage(null, upload.url, upload.mimeType)}>
           <iframe src={upload.url} width="100%" height="500px"></iframe>
           <a href={upload.url} target="_blank" rel="noopener noreferrer">
             Open PDF in a new tab
@@ -245,8 +265,8 @@ const Timeline = ({ selectedTags }) => {
                     <img
                       src={window.innerWidth <= 640 ? upload.mobileUrl : upload.laptopUrl}
                       alt={`Upload ${index + 1}`}
-                      onClick={() => openFullScreenImage(upload.url)}
-                    />
+                      onClick={() => openFullScreenImage(upload.link ? null : upload.url, upload.link, upload.mimeType)}
+                      />
                   )}
                   {upload.mimeType.startsWith('video/') && (
                     <video controls preload="none">
@@ -271,13 +291,24 @@ const Timeline = ({ selectedTags }) => {
         </div>
       )}
   
-      {fullScreenImage && (
-        <div className="full-screen-modal" onClick={closeFullScreenImage}>
-          <div className="full-screen-image-container">
-            <img src={fullScreenImage} alt="Full Screen" />
-          </div>
-        </div>
+  {(fullScreenImage || fullScreenLink) && (
+  <div className="full-screen-modal" onClick={closeFullScreenContent}>
+    <div className="full-screen-content-container">
+      {fullScreenImage && <img src={fullScreenImage} alt="Full Screen" />}
+      {fullScreenLink && (
+        <iframe
+          src={fullScreenLink}
+          width="100%"
+          height="100%"
+          frameBorder="0"
+          allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          title="Full Screen Content"
+        />
       )}
+    </div>
+  </div>
+)}
   
       {loading && <LoadingIndicator />}
       {!loading && !hasMorePosts && <div className="no-more-posts">No more posts to load.</div>}

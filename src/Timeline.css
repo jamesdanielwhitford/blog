@@ -234,6 +234,27 @@ body::-webkit-scrollbar {
   object-fit: contain;
 }
 
+.full-screen-content-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+}
+
+.full-screen-content-container img,
+.full-screen-content-container iframe {
+  max-width: 100vw;
+  max-height: 100vh;
+  object-fit: contain;
+}
+
+.full-screen-content-container video {
+  max-width: 100vw;
+  max-height: 100vh;
+  object-fit: contain;
+}
+
 .no-more-posts {
   text-align: center;
   padding: 20px;
