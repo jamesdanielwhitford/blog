@@ -52,6 +52,8 @@ const AdminView = () => {
               date: doc.data().date.toDate(), // Convert Firestore Timestamp to Date object
               coverImage: doc.data().coverImage,
               coverImageThumbnail: doc.data().coverImageThumbnail,
+              mobileCoverImage: doc.data().mobileCoverImage, // Add this line
+              laptopCoverImage: doc.data().laptopCoverImage,
               coverMimeType: doc.data().coverMimeType,
               isArchived: doc.data().isArchived,
               project: doc.data().project,
@@ -510,47 +512,40 @@ const AdminView = () => {
   </div>
 )}
 
-      <div>
-        {posts.map((post) => (
-          <div key={post.id} className="post">
-            {post.coverImage && (
-              <LazyLoad offset={500}>
-                {post.coverMimeType.startsWith('video/') ? (
-                  <video
-                    src={post.coverImage}
-                    alt="Cover"
-                    onClick={() => handleEdit(post.id)}
-                    className="post-cover-image"
-                    poster={post.coverImageThumbnail}
-                  />
-                ) : (
-                  <img
-                    src={post.coverImage}
-                    alt="Cover"
-                    onClick={() => handleEdit(post.id)}
-                    className="post-cover-image"
-                  />
-                )}
-              </LazyLoad>
-            )}
-            <div className="post-info">
-              <h2>{post.description}</h2>
-              <p>{post.date.toLocaleString()}</p> 
-              <p>Tags: {post.tags ? post.tags.join(', ') : ''}</p>
-              <p>Project: {post.project}</p>
-            </div>
-            <div className="post-actions">
-              <button onClick={() => handleEdit(post.id)}>Edit</button>
-              <button onClick={() => handleArchive(post.id, post.isArchived || false)}>
-                {post.isArchived ? 'Unarchive' : 'Archive'}
-              </button>
-              <button onClick={() => handleDelete(post.id)}>Delete</button>
-            </div>
+<div>
+      {posts.map((post) => (
+        <div key={post.id} className="post">
+          {post.coverImage && (
+            <LazyLoad offset={500}>
+              <img
+                src={window.innerWidth <= 640 ? post.mobileCoverImage : post.laptopCoverImage}
+                alt="Cover"
+                onClick={() => handleEdit(post.id)}
+                className="post-cover-image"
+                onError={(e) => {
+                  console.error('Error loading cover image:', e.target.src);
+                }}
+              />
+            </LazyLoad>
+          )}
+          <div className="post-info">
+            <h2>{post.description}</h2>
+            <p>{post.date.toLocaleString()}</p>
+            <p>Tags: {post.tags ? post.tags.join(', ') : ''}</p>
+            <p>Project: {post.project}</p>
           </div>
-        ))}
-      </div>
+          <div className="post-actions">
+            <button onClick={() => handleEdit(post.id)}>Edit</button>
+            <button onClick={() => handleArchive(post.id, post.isArchived || false)}>
+              {post.isArchived ? 'Unarchive' : 'Archive'}
+            </button>
+            <button onClick={() => handleDelete(post.id)}>Delete</button>
+          </div>
+        </div>
+      ))}
     </div>
-  );
+  </div>
+);
 };
 
 export default AdminView;
