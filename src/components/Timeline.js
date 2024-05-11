@@ -195,7 +195,7 @@ const Timeline = ({ selectedTags }) => {
                 <div onClick={() => handlePostClick(post, index)}>
                   <LazyLoad offset={500}>
                     <video
-                      src={post.coverImage}
+                      src={window.innerWidth <= 640 ? post.mobileCoverImage : post.laptopCoverImage}
                       poster={post.coverImageThumbnail}
                       preload="none"
                       width="640"
@@ -207,7 +207,7 @@ const Timeline = ({ selectedTags }) => {
               ) : (
                 <LazyLoad offset={500}>
                   <img
-                    src={window.innerWidth <= 640 ? post.mobileCoverImage : window.innerWidth <= 1280 ? post.laptopCoverImage : post.coverImage}
+                    src={window.innerWidth <= 640 ? post.mobileCoverImage : post.laptopCoverImage}
                     alt="Cover"
                     onClick={() => handlePostClick(post, index)}
                     width="640"
@@ -228,7 +228,7 @@ const Timeline = ({ selectedTags }) => {
           </div>
         </div>
       ))}
-
+  
       {selectedPost && (
         <div className="modal">
           <div className="modal-content">
@@ -241,7 +241,27 @@ const Timeline = ({ selectedTags }) => {
             <div className="modal-body">
               {selectedPost.uploads && selectedPost.uploads.map((upload, index) => (
                 <div key={index} className="modal-media-item">
-                  {renderMedia(upload, index)}
+                  {upload.mimeType.startsWith('image/') && (
+                    <img
+                      src={window.innerWidth <= 640 ? upload.mobileUrl : upload.laptopUrl}
+                      alt={`Upload ${index + 1}`}
+                      onClick={() => openFullScreenImage(upload.url)}
+                    />
+                  )}
+                  {upload.mimeType.startsWith('video/') && (
+                    <video controls preload="none">
+                      <source src={upload.url} type={upload.mimeType} />
+                      Your browser does not support the video tag.
+                    </video>
+                  )}
+                  {upload.mimeType.startsWith('application/pdf') && (
+                    <div>
+                      <iframe src={upload.url} width="100%" height="500px"></iframe>
+                      <a href={upload.url} target="_blank" rel="noopener noreferrer">
+                        Open PDF in a new tab
+                      </a>
+                    </div>
+                  )}
                   {upload.dateTime && <p>Date: {upload.dateTime}</p>}
                   {upload.location && <p>Location: {upload.location}</p>}
                 </div>
@@ -250,7 +270,7 @@ const Timeline = ({ selectedTags }) => {
           </div>
         </div>
       )}
-
+  
       {fullScreenImage && (
         <div className="full-screen-modal" onClick={closeFullScreenImage}>
           <div className="full-screen-image-container">
@@ -258,7 +278,7 @@ const Timeline = ({ selectedTags }) => {
           </div>
         </div>
       )}
-
+  
       {loading && <LoadingIndicator />}
       {!loading && !hasMorePosts && <div className="no-more-posts">No more posts to load.</div>}
     </div>

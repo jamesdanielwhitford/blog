@@ -17,7 +17,7 @@
   cursor: pointer;
   font-size: 16px;
   color: var(--text-color);
-  text-decoration: underline transparent;
+  text-decoration: none;
   padding: 4px 0;
   line-height: 1.2;
   height: 30px;
