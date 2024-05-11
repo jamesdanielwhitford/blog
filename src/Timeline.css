@@ -1,5 +1,11 @@
 body {
   background-color: var(--modal-bg-color);
+  /* scrollbar-width: none; 
+  -ms-overflow-style: none;  */
+}
+
+body::-webkit-scrollbar {
+  display: none; 
 }
 
 .post-container:first-child {
@@ -98,33 +104,37 @@ body {
 }
 
 .modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
   display: flex;
   justify-content: center;
   align-items: center;
-  position: fixed;
-  z-index: 1;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 999;
 }
 
 .modal-content {
   background-color: var(--modal-bg-color);
   width: 100%;
   height: 100%;
-  max-width: none;
+  max-width: 800px;
   max-height: none;
-  overflow-y: auto;
+  overflow: auto;
   box-sizing: border-box;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 20px;
-  position: relative;
+  scrollbar-width: none; /* Hide the scrollbar for Firefox */
+  -ms-overflow-style: none; /* Hide the scrollbar for Internet Explorer and Edge */
+}
+
+.modal-content::-webkit-scrollbar {
+  display: none; /* Hide the scrollbar for WebKit browsers (Chrome, Safari) */
 }
 
 .close {

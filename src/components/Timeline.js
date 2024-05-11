@@ -239,36 +239,12 @@ const Timeline = ({ selectedTags }) => {
               <p className="modal-project">{selectedPost.project}</p>
             </div>
             <div className="modal-body">
-              {selectedPost.coverImage && (
-                <div className="modal-cover-image">
-                  {selectedPost.coverMimeType && selectedPost.coverMimeType.startsWith('video/') ? (
-                    <video
-                      src={selectedPost.coverImage}
-                      poster={selectedPost.coverImageThumbnail}
-                      loop
-                      muted
-                      controls
-                      preload="none"
-                      width="640"
-                      height="360"
-                    />
-                  ) : (
-                    <img
-                      src={selectedPost.coverImage}
-                      alt="Cover"
-                      onClick={() => openFullScreenImage(selectedPost.coverImage)}
-                      width="640"
-                      height="360"
-                    />
-                  )}
-                </div>
-              )}
               {selectedPost.uploads && selectedPost.uploads.map((upload, index) => (
                 <div key={index} className="modal-media-item">
-                {renderMedia(upload, index)}
-                {upload.dateTime && <p>Date: {upload.dateTime}</p>}
-                {upload.location && <p>Location: {upload.location}</p>}
-              </div>
+                  {renderMedia(upload, index)}
+                  {upload.dateTime && <p>Date: {upload.dateTime}</p>}
+                  {upload.location && <p>Location: {upload.location}</p>}
+                </div>
               ))}
             </div>
           </div>

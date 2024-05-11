@@ -99,10 +99,50 @@ const AdminView = () => {
     }
   };
 
+  const [selectedImages, setSelectedImages] = useState([]);
+
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    const imagePromises = files.map((file) => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          resolve({
+            file: file,
+            url: event.target.result,
+            dateTime: '',
+            location: '',
+          });
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+  
+    Promise.all(imagePromises).then((images) => {
+      setSelectedImages((prevImages) => [...prevImages, ...images]);
+    });
+  };
+  
+  const handleImageDateChange = (index, dateTime) => {
+    setSelectedImages((prevImages) => {
+      const updatedImages = [...prevImages];
+      updatedImages[index].dateTime = dateTime;
+      return updatedImages;
+    });
+  };
+  
+  const handleImageLocationChange = (index, location) => {
+    setSelectedImages((prevImages) => {
+      const updatedImages = [...prevImages];
+      updatedImages[index].location = location;
+      return updatedImages;
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
   
-    if (!formData.description && e.target.imageUpload.files.length === 0) {
+    if (!formData.description && selectedImages.length === 0) {
       setErrorMessage('Please enter a description or upload at least one image.');
       return;
     } else {
@@ -136,10 +176,8 @@ const AdminView = () => {
       let laptopCoverImageUrl = existingPost.laptopCoverImage || null;
       let coverMimeType = null;
   
-      const files = [...e.target.imageUpload.files];
-  
-      if (files.length > 0) {
-        const coverImage = files[0];
+      if (selectedImages.length > 0) {
+        const coverImage = selectedImages[0].file;
         const coverImageRef = firebase.storage().ref(`${postId}/coverImage`);
         await coverImageRef.put(coverImage);
         coverImageUrl = await coverImageRef.getDownloadURL();
@@ -162,64 +200,43 @@ const AdminView = () => {
         coverMimeType = coverImage.type;
       }
   
-      const uploads = files.map(async (file) => {
-        const storageRef = firebase.storage().ref(`${postId}/${file.name}`);
+      const uploads = selectedImages.map(async (image) => {
+        const storageRef = firebase.storage().ref(`${postId}/${image.file.name}`);
         const metadata = {
-          customMetadata: {},
+          customMetadata: {
+            dateTime: image.dateTime,
+            location: image.location,
+          },
         };
   
-        if (file.type.startsWith('image/')) {
-          await new Promise((resolve) => {
-            EXIF.getData(file, function () {
-              const exifData = EXIF.getAllTags(this);
-              if (exifData.DateTime) {
-                metadata.customMetadata.dateTime = exifData.DateTime;
-              } else {
-                metadata.customMetadata.dateTime = new Date().toISOString();
-              }
-              if (exifData.GPSLatitude && exifData.GPSLongitude) {
-                metadata.customMetadata.location = `${exifData.GPSLatitude}, ${exifData.GPSLongitude}`;
-              } else {
-                metadata.customMetadata.location = '37.7749, -122.4194'; // Example: San Francisco coordinates
-              }
-              resolve();
-            });
-          });
-        } else {
-          metadata.customMetadata.dateTime = new Date().toISOString();
-          metadata.customMetadata.location = '37.7749, -122.4194'; // Example: San Francisco coordinates
-        }
-  
         try {
-          await storageRef.put(file, metadata);
+          await storageRef.put(image.file, metadata);
           const downloadUrl = await storageRef.getDownloadURL();
   
-          const mobileRef = firebase.storage().ref(`${postId}/${file.name}_mobile`);
-          const laptopRef = firebase.storage().ref(`${postId}/${file.name}_laptop`);
+          const mobileRef = firebase.storage().ref(`${postId}/${image.file.name}_mobile`);
+          const laptopRef = firebase.storage().ref(`${postId}/${image.file.name}_laptop`);
   
-          if (file.type.startsWith('image/')) {
-            const mobileBlob = await resizeImage(file, 640, 360);
-            await mobileRef.put(mobileBlob, metadata);
-            const mobileUrl = await mobileRef.getDownloadURL();
+          const mobileBlob = await resizeImage(image.file, 640, 360);
+          await mobileRef.put(mobileBlob, metadata);
+          const mobileUrl = await mobileRef.getDownloadURL();
   
-            const laptopBlob = await resizeImage(file, 1280, 720);
-            await laptopRef.put(laptopBlob, metadata);
-            const laptopUrl = await laptopRef.getDownloadURL();
+          const laptopBlob = await resizeImage(image.file, 1280, 720);
+          await laptopRef.put(laptopBlob, metadata);
+          const laptopUrl = await laptopRef.getDownloadURL();
   
-            metadata.customMetadata.mobileUrl = mobileUrl;
-            metadata.customMetadata.laptopUrl = laptopUrl;
-          }
+          metadata.customMetadata.mobileUrl = mobileUrl;
+          metadata.customMetadata.laptopUrl = laptopUrl;
   
           await storageRef.updateMetadata(metadata);
   
           const uploadData = {
             url: downloadUrl,
-            mobileUrl: metadata.customMetadata.mobileUrl || null,
-            laptopUrl: metadata.customMetadata.laptopUrl || null,
-            dateTime: metadata.customMetadata.dateTime,
-            location: metadata.customMetadata.location,
+            mobileUrl: mobileUrl,
+            laptopUrl: laptopUrl,
+            dateTime: image.dateTime,
+            location: image.location,
             tags: formData.tags,
-            mimeType: file.type,
+            mimeType: image.file.type,
           };
   
           const uploadRef = await postRef.collection('uploads').add(uploadData);
@@ -229,8 +246,6 @@ const AdminView = () => {
           throw error;
         }
       });
-  
-      await Promise.all(uploads);
   
       const postData = {
         description: formData.description || existingPost.description || '',
@@ -245,6 +260,9 @@ const AdminView = () => {
         tags: formData.tags,
       };
   
+      await Promise.all(uploads);
+      console.log('All uploads completed successfully');
+  
       await postRef.set(postData);
       setSuccessMessage('Post saved successfully.');
   
@@ -256,10 +274,14 @@ const AdminView = () => {
         isArchived: false,
         project: '',
       });
+  
+      // Clear the selected images after successful upload
+      setSelectedImages([]);
+  
       setShowModal(false);
     } catch (error) {
-      setErrorMessage('An error occurred. Please try again.');
-      console.error('Error submitting form:', error);
+      console.error('Error uploading files:', error);
+      setErrorMessage('An error occurred while uploading files. Please try again.');
     }
     setLoading(false);
   };
@@ -432,12 +454,7 @@ const AdminView = () => {
           onChange={handleFormChange}
         />
 
-              <div>
-                <label htmlFor="imageUpload">Upload Images:</label>
-                <input id="imageUpload" type="file" name="imageUrls" multiple accept="image/*" />
-              </div>
-
-        <div>
+<div>
           <label>Tags:</label>
           {['Philosophy', 'Gardens', 'Ceramics', 'Human Computer Interaction'].map((tag) => (
             <div key={tag}>
@@ -458,6 +475,33 @@ const AdminView = () => {
           onChange={handleFormChange}
           placeholder="Project"
         />
+
+
+      <div>
+        <label htmlFor="imageUpload">Upload Images:</label>
+        <input id="imageUpload" type="file" name="imageUrls" multiple accept="image/*" onChange={handleImageChange} />
+      </div>
+      <div className="selected-images">
+        {selectedImages.map((image, index) => (
+          <div key={index} className="selected-image">
+            <img src={image.url} alt={`Selected ${index}`} />
+            <input
+              type="date"
+              placeholder="Date"
+              value={image.dateTime}
+              onChange={(e) => handleImageDateChange(index, e.target.value)}
+            />
+            <input
+              type="text"
+              placeholder="Location"
+              value={image.location}
+              onChange={(e) => handleImageLocationChange(index, e.target.value)}
+            />
+          </div>
+        ))}
+      </div>
+
+
         <button type="submit" disabled={loading}>
           {loading ? 'Saving...' : editPostId ? 'Update Post' : 'Create Post'}
         </button>
