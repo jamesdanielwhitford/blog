@@ -259,7 +259,7 @@ body::-webkit-scrollbar {
   .full-screen-content-container {
     max-width: 100vw;
     max-height: 100vh;
-    padding: 20px; /* Increase padding for landscape orientation */
+    padding-top: 0px; 
   }
 
   .full-screen-content-container img {
