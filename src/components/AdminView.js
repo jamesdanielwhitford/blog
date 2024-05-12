@@ -28,6 +28,7 @@ const AdminView = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedImages, setSelectedImages] = useState([]);
   const [imageLinks, setImageLinks] = useState({});
+  const [imagePDFs, setImagePDFs] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -77,6 +78,13 @@ const AdminView = () => {
     setFormData((prevFormData) => ({
       ...prevFormData,
       [name]: name === 'date' ? new Date(value) : value,
+    }));
+  };
+
+  const handleImagePDFChange = (index, pdf) => {
+    setImagePDFs((prevPDFs) => ({
+      ...prevPDFs,
+      [index]: pdf,
     }));
   };
 
@@ -251,6 +259,14 @@ const AdminView = () => {
             tags: formData.tags,
             mimeType: image.file.type,
           };
+
+          const pdfFile = imagePDFs[index];
+          if (pdfFile) {
+            const pdfRef = firebase.storage().ref(`${postId}/${image.file.name}_pdf`);
+            await pdfRef.put(pdfFile);
+            const pdfUrl = await pdfRef.getDownloadURL();
+            uploadData.pdfUrl = pdfUrl;
+          }
       
           const uploadRef = await postRef.collection('uploads').add(uploadData);
           return { id: uploadRef.id, ...uploadData };
@@ -515,6 +531,11 @@ const AdminView = () => {
         placeholder="Link (e.g., YouTube URL)"
         value={imageLinks[index] || ''}
         onChange={(e) => handleImageLinkChange(index, e.target.value)}
+      />
+            <input
+        type="file"
+        accept="application/pdf"
+        onChange={(e) => handleImagePDFChange(index, e.target.files[0])}
       />
     </div>
   ))}

@@ -134,7 +134,7 @@ const [fullScreenPDF, setFullScreenPDF] = useState(null);
       );
     }
   };
-  const openFullScreenImage = (url, link) => {
+  const openFullScreenImage = (url, link, mimeType, pdfUrl) => {
     if (link) {
       const youtubeRegex = /^(?:https?:\/\/)?(?:www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})(?:\S+)?$/;
       const match = link.match(youtubeRegex);
@@ -147,11 +147,15 @@ const [fullScreenPDF, setFullScreenPDF] = useState(null);
         console.log('Not a YouTube video link');
         setFullScreenLink(link);
       }
+    } else if (pdfUrl) {
+      console.log('Opening PDF:', pdfUrl);
+      setFullScreenPDF(pdfUrl);
     } else {
-      console.log('No link provided');
+      console.log('Opening image:', url);
       setFullScreenImage(url);
     }
   };
+
   const closeFullScreenImage = () => {
     setFullScreenImage(null);
   };
@@ -192,7 +196,7 @@ const [fullScreenPDF, setFullScreenPDF] = useState(null);
         <img
           src={imageUrl}
           alt={`Upload ${index + 1}`}
-          onClick={() => openFullScreenImage(upload.url, upload.link, upload.mimeType)}
+          onClick={() => openFullScreenImage(upload.url, upload.link, upload.mimeType, upload.pdfUrl)}
         />
       );
     } else if (upload.mimeType.startsWith('video/')) {
@@ -202,126 +206,113 @@ const [fullScreenPDF, setFullScreenPDF] = useState(null);
           Your browser does not support the video tag.
         </video>
       );
-    } else if (upload.mimeType.startsWith('application/pdf')) {
-      return (
-        <div onClick={() => openFullScreenImage(null, upload.url, upload.mimeType)}>
-          <iframe src={upload.url} width="100%" height="500px"></iframe>
-          <a href={upload.url} target="_blank" rel="noopener noreferrer">
-            Open PDF in a new tab
-          </a>
-        </div>
-      );
     }
     return null;
   };
 
 
-  return (
-    <div>
-      {filteredPosts.map((post, index) => (
-        <div key={post.id} className="post-container">
-          <div className="post">
-            {post.coverImage && (
-              post.coverMimeType && post.coverMimeType.startsWith('video/') ? (
-                <div onClick={() => handlePostClick(post, index)}>
-                  <LazyLoad offset={500}>
-                    <video
-                      src={window.innerWidth <= 640 ? post.mobileCoverImage : post.laptopCoverImage}
-                      poster={post.coverImageThumbnail}
-                      preload="none"
-                      width="640"
-                      height="360"
-                    />
-                    <div className="play-button"></div>
-                  </LazyLoad>
-                </div>
-              ) : (
+return (
+  <div>
+    {filteredPosts.map((post, index) => (
+      <div key={post.id} className="post-container">
+        <div className="post">
+          {post.coverImage && (
+            post.coverMimeType && post.coverMimeType.startsWith('video/') ? (
+              <div onClick={() => handlePostClick(post, index)}>
                 <LazyLoad offset={500}>
-                  <img
+                  <video
                     src={window.innerWidth <= 640 ? post.mobileCoverImage : post.laptopCoverImage}
-                    alt="Cover"
-                    onClick={() => handlePostClick(post, index)}
+                    poster={post.coverImageThumbnail}
+                    preload="none"
                     width="640"
                     height="360"
                   />
+                  <div className="play-button"></div>
                 </LazyLoad>
-              )
-            )}
-            <div className="post-info">
-              <p className="post-date">{post.date.toDate().toLocaleString()}</p>
-              <p className="post-description">{post.description}</p>
-              <p className="post-project">{post.project}</p>
-            </div>
-            <div className="post-actions">
-              <button onClick={() => handleShare(post)}>Share</button>
-              <button onClick={() => handlePostClick(post, index)}>View More</button>
-            </div>
+              </div>
+            ) : (
+              <LazyLoad offset={500}>
+                <img
+                  src={window.innerWidth <= 640 ? post.mobileCoverImage : post.laptopCoverImage}
+                  alt="Cover"
+                  onClick={() => handlePostClick(post, index)}
+                  width="640"
+                  height="360"
+                />
+              </LazyLoad>
+            )
+          )}
+          <div className="post-info">
+            <p className="post-date">{post.date.toDate().toLocaleString()}</p>
+            <p className="post-description">{post.description}</p>
+            <p className="post-project">{post.project}</p>
+          </div>
+          <div className="post-actions">
+            <button onClick={() => handleShare(post)}>Share</button>
+            <button onClick={() => handlePostClick(post, index)}>View More</button>
           </div>
         </div>
-      ))}
-  
-      {selectedPost && (
-        <div className="modal">
-          <div className="modal-content">
-            <span className="close" onClick={closeModal}>&times;</span>
-            <div className="modal-header">
-              <h2 className="modal-description">{selectedPost.description}</h2>
-              <p className="modal-date">{selectedPost.date.toDate().toLocaleString()}</p>
-              <p className="modal-project">{selectedPost.project}</p>
-            </div>
-            <div className="modal-body">
-              {selectedPost.uploads && selectedPost.uploads.map((upload, index) => (
-                <div key={index} className="modal-media-item">
-                  {upload.mimeType.startsWith('image/') && (
-                    <img
-                      src={window.innerWidth <= 640 ? upload.mobileUrl : upload.laptopUrl}
-                      alt={`Upload ${index + 1}`}
-                      onClick={() => openFullScreenImage(upload.link ? null : upload.url, upload.link, upload.mimeType)}
-                      />
-                  )}
-                  {upload.mimeType.startsWith('video/') && (
-                    <video controls preload="none">
-                      <source src={upload.url} type={upload.mimeType} />
-                      Your browser does not support the video tag.
-                    </video>
-                  )}
-                  {upload.mimeType.startsWith('application/pdf') && (
-                    <div>
-                      <iframe src={upload.url} width="100%" height="500px"></iframe>
-                      <a href={upload.url} target="_blank" rel="noopener noreferrer">
-                        Open PDF in a new tab
-                      </a>
-                    </div>
-                  )}
-                  {upload.dateTime && <p>Date: {upload.dateTime}</p>}
-                  {upload.location && <p>Location: {upload.location}</p>}
-                </div>
-              ))}
-            </div>
+      </div>
+    ))}
+
+    {selectedPost && (
+      <div className="modal">
+        <div className="modal-content">
+          <span className="close" onClick={closeModal}>&times;</span>
+          <div className="modal-header">
+            <h2 className="modal-description">{selectedPost.description}</h2>
+            <p className="modal-date">{selectedPost.date.toDate().toLocaleString()}</p>
+            <p className="modal-project">{selectedPost.project}</p>
+          </div>
+          <div className="modal-body">
+            {selectedPost.uploads && selectedPost.uploads.map((upload, index) => (
+              <div key={index} className="modal-media-item">
+                {renderMedia(upload, index)}
+                {upload.dateTime && <p>Date: {upload.dateTime}</p>}
+                {upload.location && <p>Location: {upload.location}</p>}
+              </div>
+            ))}
           </div>
         </div>
-      )}
-  
-  {(fullScreenImage || fullScreenVideo) && (
-  <div className="full-screen-modal" onClick={closeFullScreenContent}>
-    <div className="full-screen-content-container">
-      {fullScreenImage && <img src={fullScreenImage} alt="Full Screen" />}
-      {fullScreenVideo && (
-        <>
-          <YouTubePlayer videoId={fullScreenVideo} />
-          <span className="full-screen-modal-close" onClick={closeFullScreenContent}>
-            &times;
-          </span>
-        </>
-      )}
-    </div>
+      </div>
+    )}
+
+    {(fullScreenImage || fullScreenVideo || fullScreenLink || fullScreenPDF) && (
+      <div className="full-screen-modal" onClick={closeFullScreenContent}>
+        <div className="full-screen-content-container">
+          {fullScreenImage && <img src={fullScreenImage} alt="Full Screen" />}
+          {fullScreenVideo && (
+            <>
+              <YouTubePlayer videoId={fullScreenVideo} />
+              <span className="full-screen-modal-close" onClick={closeFullScreenContent}>
+                &times;
+              </span>
+            </>
+          )}
+          {fullScreenLink && (
+            <div className="full-screen-link-container">
+              <iframe src={fullScreenLink} width="100%" height="100%" />
+              <span className="full-screen-modal-close" onClick={closeFullScreenContent}>
+                &times;
+              </span>
+            </div>
+          )}
+          {fullScreenPDF && (
+            <div className="full-screen-pdf-container">
+              <iframe src={fullScreenPDF} width="100%" height="100%" />
+              <span className="full-screen-modal-close" onClick={closeFullScreenContent}>
+                &times;
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    )}
+
+    {loading && <LoadingIndicator />}
+    {!loading && !hasMorePosts && <div className="no-more-posts">No more posts to load.</div>}
   </div>
-)}
-  
-      {loading && <LoadingIndicator />}
-      {!loading && !hasMorePosts && <div className="no-more-posts">No more posts to load.</div>}
-    </div>
-  );
+);
 };
 
 export default Timeline;
