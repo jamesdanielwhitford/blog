@@ -61,11 +61,15 @@
 }
 
 .close {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
   color: var(--secondary-color);
-  float: right;
   font-size: 28px;
   font-weight: bold;
   cursor: pointer;
+  z-index: 1000;
 }
 
 .close:hover,
