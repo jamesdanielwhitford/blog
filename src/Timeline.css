@@ -119,9 +119,9 @@ body::-webkit-scrollbar {
 .modal-content {
   background-color: var(--modal-bg-color);
   width: 100%;
-  height: 100%;
-  max-width: 800px;
-  max-height: 80vh;
+  height: calc(100% - 80px); /* Subtract the height of the close button and some padding */
+  max-width: none; /* Remove the max-width limitation */
+  max-height: none; /* Remove the max-height limitation */
   overflow: auto;
   box-sizing: border-box;
   padding: 20px;
@@ -131,6 +131,7 @@ body::-webkit-scrollbar {
   text-align: center;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  margin-top: 80px; /* Add margin to the top to create space for the close button */
 }
 
 .modal-content::-webkit-scrollbar {
