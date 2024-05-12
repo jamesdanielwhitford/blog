@@ -220,6 +220,17 @@ body::-webkit-scrollbar {
   z-index: 9999;
 }
 
+.full-screen-modal-close {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  color: var(--text-color);
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 1;
+}
+
 .full-screen-image-container {
   display: flex;
   justify-content: center;

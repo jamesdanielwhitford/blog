@@ -1,6 +1,8 @@
 import { firestore } from '../firebase';
 import { useState, useEffect, useCallback } from 'react';
 import LazyLoad from 'react-lazyload';
+import YouTubePlayer from './YouTubePlayer';
+
 import '../Timeline.css';
 
 const LoadingIndicator = () => {
@@ -134,14 +136,22 @@ const [fullScreenPDF, setFullScreenPDF] = useState(null);
   };
   const openFullScreenImage = (url, link) => {
     if (link) {
-      // Open the link in the full-screen modal
-      setFullScreenLink(link);
+      const youtubeRegex = /^(?:https?:\/\/)?(?:www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})(?:\S+)?$/;
+      const match = link.match(youtubeRegex);
+  
+      if (match) {
+        const videoId = match[1];
+        console.log('YouTube Video ID:', videoId);
+        setFullScreenVideo(videoId);
+      } else {
+        console.log('Not a YouTube video link');
+        setFullScreenLink(link);
+      }
     } else {
-      // Open the full-sized image
+      console.log('No link provided');
       setFullScreenImage(url);
     }
   };
-
   const closeFullScreenImage = () => {
     setFullScreenImage(null);
   };
@@ -160,6 +170,7 @@ const [fullScreenPDF, setFullScreenPDF] = useState(null);
       img.onerror = () => reject();
     });
   };
+
 
   useEffect(() => {
     if (selectedPost) {
@@ -291,20 +302,17 @@ const [fullScreenPDF, setFullScreenPDF] = useState(null);
         </div>
       )}
   
-  {(fullScreenImage || fullScreenLink) && (
+  {(fullScreenImage || fullScreenVideo) && (
   <div className="full-screen-modal" onClick={closeFullScreenContent}>
     <div className="full-screen-content-container">
       {fullScreenImage && <img src={fullScreenImage} alt="Full Screen" />}
-      {fullScreenLink && (
-        <iframe
-          src={fullScreenLink}
-          width="100%"
-          height="100%"
-          frameBorder="0"
-          allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          title="Full Screen Content"
-        />
+      {fullScreenVideo && (
+        <>
+          <YouTubePlayer videoId={fullScreenVideo} />
+          <span className="full-screen-modal-close" onClick={closeFullScreenContent}>
+            &times;
+          </span>
+        </>
       )}
     </div>
   </div>
