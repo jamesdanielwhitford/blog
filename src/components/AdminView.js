@@ -224,42 +224,41 @@ const AdminView = () => {
         const metadata = {
           customMetadata: {
             dateTime: image.dateTime,
-            location: image.location,
             link: imageLinks[index] || '',
           },
         };
-      
+  
         try {
           await storageRef.put(image.file, metadata);
           const downloadUrl = await storageRef.getDownloadURL();
-      
+  
           const mobileRef = firebase.storage().ref(`${postId}/${image.file.name}_mobile`);
           const laptopRef = firebase.storage().ref(`${postId}/${image.file.name}_laptop`);
-      
+  
           const mobileBlob = await resizeImage(image.file, 640, 360);
           await mobileRef.put(mobileBlob, metadata);
           const mobileUrl = await mobileRef.getDownloadURL();
-      
+  
           const laptopBlob = await resizeImage(image.file, 1280, 720);
           await laptopRef.put(laptopBlob, metadata);
           const laptopUrl = await laptopRef.getDownloadURL();
-      
+  
           metadata.customMetadata.mobileUrl = mobileUrl;
           metadata.customMetadata.laptopUrl = laptopUrl;
-      
+  
           await storageRef.updateMetadata(metadata);
-      
+  
           const uploadData = {
             url: downloadUrl,
             mobileUrl: mobileUrl,
             laptopUrl: laptopUrl,
             dateTime: image.dateTime,
             location: image.location,
-            link: imageLinks[index] || '', // Add the link to the uploadData object
+            link: imageLinks[index] || '',
             tags: formData.tags,
             mimeType: image.file.type,
           };
-
+  
           const pdfFile = imagePDFs[index];
           if (pdfFile) {
             const pdfRef = firebase.storage().ref(`${postId}/${image.file.name}_pdf`);
@@ -267,7 +266,7 @@ const AdminView = () => {
             const pdfUrl = await pdfRef.getDownloadURL();
             uploadData.pdfUrl = pdfUrl;
           }
-      
+  
           const uploadRef = await postRef.collection('uploads').add(uploadData);
           return { id: uploadRef.id, ...uploadData };
         } catch (error) {
@@ -304,7 +303,6 @@ const AdminView = () => {
         project: '',
       });
   
-      // Clear the selected images after successful upload
       setSelectedImages([]);
   
       setShowModal(false);

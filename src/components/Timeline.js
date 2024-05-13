@@ -196,10 +196,9 @@ const Timeline = ({ selectedTags }) => {
             onClick={() => openFullScreenImage(upload.url, upload.link, upload.mimeType, upload.pdfUrl)}
           />
           <div className="modal-media-info">
-            {upload.dateTime && <p>Date: {upload.dateTime}</p>}
+            {upload.dateTime && <p>{upload.dateTime}</p>}
             {upload.location && (
               <p>
-                Location:{' '}
                 <a
                   href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(upload.location)}`}
                   target="_blank"
@@ -265,8 +264,8 @@ return (
             <p className="post-project">{post.project}</p>
           </div>
           <div className="post-actions">
-            <button onClick={() => handleShare(post)}>Share</button>
-            <button onClick={() => handlePostClick(post, index)}>View More</button>
+            {/* <button onClick={() => handleShare(post)}>Share</button>
+            <button onClick={() => handlePostClick(post, index)}>View More</button> */}
           </div>
         </div>
       </div>
@@ -285,8 +284,6 @@ return (
             {selectedPost.uploads && selectedPost.uploads.map((upload, index) => (
               <div key={index} className="modal-media-item">
                 {renderMedia(upload, index)}
-                {upload.dateTime && <p>Date: {upload.dateTime}</p>}
-                {upload.location && <p>Location: {upload.location}</p>}
               </div>
             ))}
           </div>
