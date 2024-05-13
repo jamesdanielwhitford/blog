@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { firestore } from '../firebase';
 import LazyLoad from 'react-lazyload';
+import FullScreenModal from './FullScreenModal';
 import '../Timeline.css';
 
-const ProjectModal = ({ project, closeModal, openFullScreenImage }) => {
+const ProjectModal = ({ project, closeModal }) => {
   const [posts, setPosts] = useState([]);
+  const [fullScreenImage, setFullScreenImage] = useState(null);
+  const [fullScreenVideo, setFullScreenVideo] = useState(null);
 
   useEffect(() => {
     const fetchProjectPosts = async () => {
@@ -32,6 +35,29 @@ const ProjectModal = ({ project, closeModal, openFullScreenImage }) => {
 
     fetchProjectPosts();
   }, [project]);
+
+  const openFullScreenImage = (url, link, mimeType, pdfUrl) => {
+    console.log('Opening full-screen modal');
+    if (pdfUrl) {
+      window.open(pdfUrl, '_blank');
+    } else if (link) {
+      const youtubeRegex = /^(?:https?:\/\/)?(?:www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})(?:\S+)?$/;
+      const match = link.match(youtubeRegex);
+
+      if (match) {
+        const videoId = match[1];
+        setFullScreenVideo(videoId);
+      }
+    } else {
+      setFullScreenImage(url);
+    }
+  };
+
+  const closeFullScreenContent = () => {
+    console.log('Closing full-screen modal');
+    setFullScreenImage(null);
+    setFullScreenVideo(null);
+  };
 
   const renderMedia = (upload, index) => {
     if (upload.mimeType.startsWith('image/')) {
@@ -94,6 +120,13 @@ const ProjectModal = ({ project, closeModal, openFullScreenImage }) => {
           </div>
         ))}
       </div>
+      {(fullScreenImage || fullScreenVideo) && (
+        <FullScreenModal
+          fullScreenImage={fullScreenImage}
+          fullScreenVideo={fullScreenVideo}
+          onClose={closeFullScreenContent}
+        />
+      )}
     </div>
   );
 };
