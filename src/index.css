@@ -36,6 +36,16 @@ code {
     --button-hover-bg-color: #444;
     --link-color: #fff;
   }
+
+  @supports (color-scheme: dark) {
+    html {
+      background-color: #121212;
+    }
+
+    html[data-color-scheme="dark"] {
+      background-color: #121212;
+    }
+  }
 }
 
 .google-sign-in-button {
