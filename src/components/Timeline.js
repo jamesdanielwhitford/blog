@@ -2,7 +2,7 @@ import { firestore } from '../firebase';
 import { useState, useEffect, useCallback } from 'react';
 import LazyLoad from 'react-lazyload';
 import YouTubePlayer from './YouTubePlayer';
-
+import ProjectModal from './ProjectModal';
 import '../Timeline.css';
 
 const LoadingIndicator = () => {
@@ -12,12 +12,23 @@ const LoadingIndicator = () => {
 const Timeline = ({ selectedTags }) => {
   const [posts, setPosts] = useState([]);
   const [selectedPost, setSelectedPost] = useState(null);
+  const [selectedProject, setSelectedProject] = useState(null);
   const [loading, setLoading] = useState(false);
   const [fullScreenImage, setFullScreenImage] = useState(null);
   const [currentPostIndex, setCurrentPostIndex] = useState(0);
   const [hasMorePosts, setHasMorePosts] = useState(true);
   const [fullScreenLink, setFullScreenLink] = useState(null);
   const [fullScreenVideo, setFullScreenVideo] = useState(null);
+
+  const openProjectModal = (project) => {
+    setSelectedProject(project);
+    document.body.classList.add('modal-open');
+  };
+
+  const closeProjectModal = () => {
+    setSelectedProject(null);
+    document.body.classList.remove('modal-open');
+  };
 
   useEffect(() => {
     const fetchInitialPosts = async () => {
@@ -261,11 +272,15 @@ return (
           <div className="post-info">
             <p className="post-date">{post.date.toDate().toLocaleString()}</p>
             <p className="post-description">{post.description}</p>
-            <p className="post-project">{post.project}</p>
+            <p className="post-project">
+              <a href="#" onClick={() => openProjectModal(post.project)}>
+                {post.project}
+              </a>
+            </p>
           </div>
           <div className="post-actions">
-            {/* <button onClick={() => handleShare(post)}>Share</button>
-            <button onClick={() => handlePostClick(post, index)}>View More</button> */}
+            <button onClick={() => handleShare(post)}>Share</button>
+            <button onClick={() => handlePostClick(post, index)}>View More</button>
           </div>
         </div>
       </div>
@@ -278,12 +293,18 @@ return (
           <div className="modal-header">
             <h2 className="modal-description">{selectedPost.description}</h2>
             <p className="modal-date">{selectedPost.date.toDate().toLocaleString()}</p>
-            <p className="modal-project">{selectedPost.project}</p>
+            <p className="modal-project">
+              <a href="#" onClick={() => openProjectModal(selectedPost.project)}>
+                {selectedPost.project}
+              </a>
+            </p>
           </div>
           <div className="modal-body">
             {selectedPost.uploads && selectedPost.uploads.map((upload, index) => (
               <div key={index} className="modal-media-item">
                 {renderMedia(upload, index)}
+                {upload.dateTime && <p>Date: {upload.dateTime}</p>}
+                {upload.location && <p>Location: {upload.location}</p>}
               </div>
             ))}
           </div>
@@ -313,6 +334,14 @@ return (
           )}
         </div>
       </div>
+    )}
+
+    {selectedProject && (
+      <ProjectModal
+        project={selectedProject}
+        closeModal={closeProjectModal}
+        openFullScreenImage={openFullScreenImage}
+      />
     )}
 
     {loading && <LoadingIndicator />}

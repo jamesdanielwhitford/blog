@@ -359,3 +359,12 @@ body::-webkit-scrollbar {
   font-size: 18px;
   color: var(--secondary-color);
 }
+
+
+.project-post {
+  margin-bottom: 20px;
+}
+
+.project-post-media {
+  margin-bottom: 10px;
+}

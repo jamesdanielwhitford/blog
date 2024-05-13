@@ -30,6 +30,18 @@ const AdminView = () => {
   const [imageLinks, setImageLinks] = useState({});
   const [imagePDFs, setImagePDFs] = useState({});
   const navigate = useNavigate();
+  const [projectNames, setProjectNames] = useState([]);
+
+
+  useEffect(() => {
+    const fetchProjectNames = async () => {
+      const projectsSnapshot = await firestore.collection('posts').get();
+      const projects = [...new Set(projectsSnapshot.docs.map((doc) => doc.data().project))];
+      setProjectNames(projects);
+    };
+
+    fetchProjectNames();
+  }, []);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -75,10 +87,18 @@ const AdminView = () => {
   const handleFormChange = (e) => {
     const { name, value } = e.target;
   
-    setFormData((prevFormData) => ({
-      ...prevFormData,
-      [name]: name === 'date' ? new Date(value) : value,
-    }));
+    if (name === 'project' && value === 'new') {
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        project: '',
+        newProject: '',
+      }));
+    } else {
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        [name]: name === 'date' ? new Date(value) : value,
+      }));
+    }
   };
 
   const handleImagePDFChange = (index, pdf) => {
@@ -284,7 +304,7 @@ const AdminView = () => {
         laptopCoverImage: laptopCoverImageUrl,
         coverMimeType: coverMimeType,
         isArchived: existingPost.isArchived || false,
-        project: formData.project,
+        project: formData.project === 'new' ? formData.newProject : formData.project,
         tags: formData.tags,
       };
   
@@ -495,13 +515,28 @@ const AdminView = () => {
             </div>
           ))}
         </div>
-        <input
-          type="text"
-          name="project"
-          value={formData.project}
-          onChange={handleFormChange}
-          placeholder="Project"
-        />
+        <select
+    name="project"
+    value={formData.project}
+    onChange={handleFormChange}
+  >
+    <option value="">Select a project</option>
+    {projectNames.map((project) => (
+      <option key={project} value={project}>
+        {project}
+      </option>
+    ))}
+    <option value="new">Add new project</option>
+  </select>
+  {formData.project === 'new' && (
+    <input
+      type="text"
+      name="newProject"
+      value={formData.newProject}
+      onChange={handleFormChange}
+      placeholder="Enter new project name"
+    />
+  )}
 
 
       <div>
