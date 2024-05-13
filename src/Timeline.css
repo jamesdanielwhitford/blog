@@ -9,7 +9,7 @@ body::-webkit-scrollbar {
 }
 
 .post-container:first-child {
-  margin-top: calc(50vh - 30vh);
+  margin-top: calc(50vh - 25vh);
 }
 
 .post-container {
@@ -21,7 +21,7 @@ body::-webkit-scrollbar {
 
 .post {
   max-width: 600px;
-  min-height: 80vh;
+  min-height: 70vh;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -84,7 +84,7 @@ body::-webkit-scrollbar {
   }
 
   .post-container:first-child {
-    margin-top: calc(50vh - 28vh);
+    margin-top: calc(50vh - 25vh);
   }
 
   .post img,
@@ -99,7 +99,7 @@ body::-webkit-scrollbar {
 
 @media screen and (max-width: 375px) {
   .post-container:first-child {
-    margin-top: calc(50vh - 27vh);
+    margin-top: calc(50vh - 35vh);
   }
 }
 

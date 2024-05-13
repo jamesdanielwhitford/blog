@@ -279,8 +279,8 @@ return (
             </p>
           </div>
           <div className="post-actions">
-            <button onClick={() => handleShare(post)}>Share</button>
-            <button onClick={() => handlePostClick(post, index)}>View More</button>
+            {/* <button onClick={() => handleShare(post)}>Share</button>
+            <button onClick={() => handlePostClick(post, index)}>View More</button> */}
           </div>
         </div>
       </div>
@@ -303,8 +303,6 @@ return (
             {selectedPost.uploads && selectedPost.uploads.map((upload, index) => (
               <div key={index} className="modal-media-item">
                 {renderMedia(upload, index)}
-                {upload.dateTime && <p>Date: {upload.dateTime}</p>}
-                {upload.location && <p>Location: {upload.location}</p>}
               </div>
             ))}
           </div>
