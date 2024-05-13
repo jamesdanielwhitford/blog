@@ -37,7 +37,6 @@ const ProjectModal = ({ project, closeModal }) => {
   }, [project]);
 
   const openFullScreenImage = (url, link, mimeType, pdfUrl) => {
-    console.log('Opening full-screen modal');
     if (pdfUrl) {
       window.open(pdfUrl, '_blank');
     } else if (link) {
@@ -54,7 +53,6 @@ const ProjectModal = ({ project, closeModal }) => {
   };
 
   const closeFullScreenContent = () => {
-    console.log('Closing full-screen modal');
     setFullScreenImage(null);
     setFullScreenVideo(null);
   };
@@ -70,16 +68,15 @@ const ProjectModal = ({ project, closeModal }) => {
             onClick={() => openFullScreenImage(upload.url, upload.link, upload.mimeType, upload.pdfUrl)}
           />
           <div className="modal-media-info">
-            {upload.dateTime && <p>Date: {upload.dateTime}</p>}
+            {upload.dateTime && <p>{upload.dateTime}</p>}
             {upload.location && (
               <p>
-                Location:{' '}
                 <a
                   href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(upload.location)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  {upload.location}
+                Location
                 </a>
               </p>
             )}

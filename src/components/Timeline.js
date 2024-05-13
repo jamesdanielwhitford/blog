@@ -215,7 +215,7 @@ const Timeline = ({ selectedTags }) => {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  {upload.location}
+                  Location
                 </a>
               </p>
             )}
