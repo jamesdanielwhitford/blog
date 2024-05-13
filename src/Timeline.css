@@ -191,6 +191,7 @@ body::-webkit-scrollbar {
 
 .modal-media-item {
   margin-bottom: 20px;
+  text-align: center;
 }
 
 .modal-media-item iframe {
@@ -203,6 +204,23 @@ body::-webkit-scrollbar {
   max-width: 100%;
   max-height: 60vh;
   object-fit: contain;
+  cursor: pointer;
+}
+
+.modal-media-info {
+  margin-top: 10px;
+}
+
+.modal-media-info p {
+  margin: 5px 0;
+}
+
+.modal-media-info a {
+  text-decoration: underline;
+}
+
+.modal-media-info a:hover {
+  text-decoration: underline;
 }
 
 .modal-open {
@@ -252,6 +270,14 @@ body::-webkit-scrollbar {
     height: 100%;
     object-fit: contain;
   }
+
+  .full-screen-content-container iframe {
+    position: absolute;
+    top: 150px; 
+    width: 100%;
+    height: calc(100% - 350px); /* Subtract the padding from the height */
+    border: none;
+  }
 }
 
 /* Media queries for landscape orientation on small screens */
@@ -269,6 +295,15 @@ body::-webkit-scrollbar {
     height: auto;
     object-fit: contain;
   }
+
+.full-screen-content-container iframe {
+  position: absolute;
+  top: 60px; 
+  width: 100%;
+  height: calc(100% - 60px); /* Subtract the padding from the height */
+  border: none;
+}
+
 }
 
 .full-screen-modal-close {
@@ -294,20 +329,16 @@ body::-webkit-scrollbar {
   box-sizing: border-box; /* Include padding in the element's total width and height */
 }
 
+
+@media (min-width: 1200px) {
 .full-screen-content-container iframe {
   position: absolute;
-  top: 60px; /* Adjust the top position to match the padding */
-  left: 0;
+  top: 150px; 
   width: 100%;
-  height: calc(100% - 60px); /* Subtract the padding from the height */
+  height: calc(100% - 350px); /* Subtract the padding from the height */
   border: none;
+} 
 }
-
-/* .full-screen-image-container img {
-  max-width: 100vw;
-  max-height: 100vh;
-  object-fit: contain;
-} */
 
 .full-screen-content-container video {
   max-width: 100vw;

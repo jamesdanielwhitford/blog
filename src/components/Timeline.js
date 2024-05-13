@@ -18,7 +18,6 @@ const Timeline = ({ selectedTags }) => {
   const [hasMorePosts, setHasMorePosts] = useState(true);
   const [fullScreenLink, setFullScreenLink] = useState(null);
   const [fullScreenVideo, setFullScreenVideo] = useState(null);
-const [fullScreenPDF, setFullScreenPDF] = useState(null);
 
   useEffect(() => {
     const fetchInitialPosts = async () => {
@@ -135,7 +134,9 @@ const [fullScreenPDF, setFullScreenPDF] = useState(null);
     }
   };
   const openFullScreenImage = (url, link, mimeType, pdfUrl) => {
-    if (link) {
+    if (pdfUrl) {
+      window.open(pdfUrl, '_blank');
+    } else if (link) {
       const youtubeRegex = /^(?:https?:\/\/)?(?:www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})(?:\S+)?$/;
       const match = link.match(youtubeRegex);
   
@@ -147,15 +148,11 @@ const [fullScreenPDF, setFullScreenPDF] = useState(null);
         console.log('Not a YouTube video link');
         setFullScreenLink(link);
       }
-    } else if (pdfUrl) {
-      console.log('Opening PDF:', pdfUrl);
-      setFullScreenPDF(pdfUrl);
     } else {
       console.log('Opening image:', url);
       setFullScreenImage(url);
     }
   };
-
   const closeFullScreenImage = () => {
     setFullScreenImage(null);
   };
@@ -163,7 +160,6 @@ const [fullScreenPDF, setFullScreenPDF] = useState(null);
   const closeFullScreenContent = () => {
     setFullScreenImage(null);
     setFullScreenVideo(null);
-    setFullScreenPDF(null);
   };
 
   const preloadImage = (url) => {
@@ -193,18 +189,39 @@ const [fullScreenPDF, setFullScreenPDF] = useState(null);
     if (upload.mimeType.startsWith('image/')) {
       const imageUrl = window.innerWidth <= 640 ? upload.mobileUrl : window.innerWidth <= 1280 ? upload.laptopUrl : upload.url;
       return (
-        <img
-          src={imageUrl}
-          alt={`Upload ${index + 1}`}
-          onClick={() => openFullScreenImage(upload.url, upload.link, upload.mimeType, upload.pdfUrl)}
-        />
+        <div key={index} className="modal-media-item">
+          <img
+            src={imageUrl}
+            alt={`Upload ${index + 1}`}
+            onClick={() => openFullScreenImage(upload.url, upload.link, upload.mimeType, upload.pdfUrl)}
+          />
+          <div className="modal-media-info">
+            {upload.dateTime && <p>Date: {upload.dateTime}</p>}
+            {upload.location && (
+              <p>
+                Location:{' '}
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(upload.location)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {upload.location}
+                </a>
+              </p>
+            )}
+            {upload.link && <p><a href={upload.link} target="_blank" rel="noopener noreferrer">Video</a></p>}
+            {upload.pdfUrl && <p><a href={upload.pdfUrl} target="_blank" rel="noopener noreferrer">PDF</a></p>}
+          </div>
+        </div>
       );
     } else if (upload.mimeType.startsWith('video/')) {
       return (
-        <video controls preload="none" onClick={() => openFullScreenImage(null, upload.url, upload.mimeType)}>
-          <source src={upload.url} type={upload.mimeType} />
-          Your browser does not support the video tag.
-        </video>
+        <div key={index} className="modal-media-item">
+          <video controls preload="none" onClick={() => openFullScreenImage(null, upload.url, upload.mimeType)}>
+            <source src={upload.url} type={upload.mimeType} />
+            Your browser does not support the video tag.
+          </video>
+        </div>
       );
     }
     return null;
@@ -277,7 +294,7 @@ return (
       </div>
     )}
 
-    {(fullScreenImage || fullScreenVideo || fullScreenLink || fullScreenPDF) && (
+    {(fullScreenImage || fullScreenVideo || fullScreenLink) && (
       <div className="full-screen-modal" onClick={closeFullScreenContent}>
         <div className="full-screen-content-container">
           {fullScreenImage && <img src={fullScreenImage} alt="Full Screen" />}
@@ -292,14 +309,6 @@ return (
           {fullScreenLink && (
             <div className="full-screen-link-container">
               <iframe src={fullScreenLink} width="100%" height="100%" />
-              <span className="full-screen-modal-close" onClick={closeFullScreenContent}>
-                &times;
-              </span>
-            </div>
-          )}
-          {fullScreenPDF && (
-            <div className="full-screen-pdf-container">
-              <iframe src={fullScreenPDF} width="100%" height="100%" />
               <span className="full-screen-modal-close" onClick={closeFullScreenContent}>
                 &times;
               </span>

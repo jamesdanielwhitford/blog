@@ -22,6 +22,7 @@ code {
   --button-bg-color: #f0f0f0;
   --button-text-color: #333;
   --button-hover-bg-color: #e0e0e0;
+  --link-color: #000;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -33,6 +34,7 @@ code {
     --button-bg-color: #333;
     --button-text-color: #fff;
     --button-hover-bg-color: #444;
+    --link-color: #fff;
   }
 }
 
@@ -48,4 +50,13 @@ code {
 
 .google-sign-in-button:hover {
   background-color: var(--button-hover-bg-color);
+}
+
+a {
+  color: var(--link-color);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
 }
