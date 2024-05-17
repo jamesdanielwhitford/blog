@@ -1,5 +1,5 @@
 import { firestore } from '../firebase';
-import { useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import LazyLoad from 'react-lazyload';
 import YouTubePlayer from './YouTubePlayer';
 import ProjectModal from './ProjectModal';
@@ -31,6 +31,8 @@ const Timeline = ({ selectedTags }) => {
     setSelectedProject(null);
     document.body.classList.remove('modal-open');
   };
+
+
 
   useEffect(() => {
     const fetchInitialPosts = async () => {
@@ -129,6 +131,15 @@ const Timeline = ({ selectedTags }) => {
     setInfoPost(infoPost && infoPost.id === post.id ? null : post);
   };
 
+  const postImageRefs = useRef([]);
+
+  const handleImageLoad = (event, post) => {
+    const imgElement = event.target;
+    const { width, height } = imgElement;
+    const aspectRatio = (height / width) * 100;
+    imgElement.parentNode.style.paddingTop = `${aspectRatio}%`;
+  };
+
   const handleShare = async (post) => {
     if (navigator.share) {
       try {
@@ -211,41 +222,43 @@ const Timeline = ({ selectedTags }) => {
 
   return (
     <div>
-{filteredPosts.map((post, index) => (
-  <div key={post.id} className="post-container">
-    <div className="post">
-      <div className="post-image-container">
-        {post.coverImage && (
-          <LazyLoad offset={500}>
-            <img
-              src={window.innerWidth <= 640 ? post.mobileCoverImage : post.laptopCoverImage}
-              alt="Cover"
-              onClick={() => handlePostClick(post, index)}
-              className={`post-image ${infoPost && infoPost.id === post.id ? 'hidden' : ''}`}
-            />
-          </LazyLoad>
-        )}
-        {infoPost && infoPost.id === post.id && (
-          <div className={`post-info ${isDarkMode ? 'dark-mode' : 'light-mode'} show`}>
-            <p className="post-date">{post.date.toDate().toLocaleString()}</p>
-            <p className="post-description">{post.description}</p>
-            <p className="post-project">
-              <a href="#" onClick={(e) => {
-                e.stopPropagation();
-                openProjectModal(post.project);
-              }}>
-                {post.project}
-              </a>
-            </p>
+      {filteredPosts.map((post, index) => (
+        <div key={post.id} className="post-container">
+          <div className="post">
+            <div className="post-image-container">
+              {post.coverImage && (
+                <LazyLoad offset={500}>
+<img
+  ref={(el) => (postImageRefs.current[index] = el)}
+  src={window.innerWidth <= 640 ? post.mobileCoverImage : post.laptopCoverImage}
+  alt="Cover"
+  onClick={() => handlePostClick(post, index)}
+  onLoad={(event) => handleImageLoad(event, post)}
+  className={`post-image ${infoPost && infoPost.id === post.id ? 'hidden' : ''}`}
+/>
+                </LazyLoad>
+              )}
+              {infoPost && infoPost.id === post.id && (
+                <div className={`post-info ${isDarkMode ? 'dark-mode' : 'light-mode'} show`}>
+                  <p className="post-date">{post.date.toDate().toLocaleString()}</p>
+                  <p className="post-description">{post.description}</p>
+                  <p className="post-project">
+                    <a href="#" onClick={(e) => {
+                      e.stopPropagation();
+                      openProjectModal(post.project);
+                    }}>
+                      {post.project}
+                    </a>
+                  </p>
+                </div>
+              )}
+            </div>
+            <button className="info-button" onClick={() => handleInfoButtonClick(post)}>
+              <span>i</span>
+            </button>
           </div>
-        )}
-      </div>
-      <button className="info-button" onClick={() => handleInfoButtonClick(post)}>
-        <span>i</span>
-      </button>
-    </div>
-  </div>
-))}
+        </div>
+      ))}
   
       {selectedPost && (
         <div className="modal">

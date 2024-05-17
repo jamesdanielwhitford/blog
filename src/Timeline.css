@@ -385,7 +385,7 @@ body::-webkit-scrollbar {
 .post-image-container {
   position: relative;
   width: 100%;
-  padding-top: 56.25%; /* 16:9 aspect ratio */
+  padding-top: 56.25%; /* 16:9 aspect ratio fallback */
   overflow: hidden;
   border-radius: 8px;
 }
@@ -446,8 +446,8 @@ body::-webkit-scrollbar {
 }
 
 .info-button {
-  position: relative;
-  bottom: 0;
+  position: absolute;
+  bottom: 40px;
   width: 24px;
   height: 24px;
   border-radius: 50%;
@@ -460,5 +460,5 @@ body::-webkit-scrollbar {
   cursor: pointer;
   border: none;
   outline: none;
-  margin-top: 10px;
+  z-index: 1;
 }
