@@ -23,6 +23,7 @@ code {
   --button-text-color: #333;
   --button-hover-bg-color: #e0e0e0;
   --link-color: #000;
+  --post-bg-color: #fff;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -35,6 +36,7 @@ code {
     --button-text-color: #fff;
     --button-hover-bg-color: #444;
     --link-color: #fff;
+    --post-bg-color: #222;
   }
 
   @supports (color-scheme: dark) {

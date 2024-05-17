@@ -20,6 +20,8 @@ const Timeline = ({ selectedTags }) => {
   const [fullScreenLink, setFullScreenLink] = useState(null);
   const [fullScreenVideo, setFullScreenVideo] = useState(null);
 
+  const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
   const openProjectModal = (project) => {
     setSelectedProject(project);
     document.body.classList.add('modal-open');
@@ -121,6 +123,12 @@ const Timeline = ({ selectedTags }) => {
     document.body.classList.remove('modal-open');
   };
 
+  const [infoPost, setInfoPost] = useState(null);
+
+  const handleInfoButtonClick = (post) => {
+    setInfoPost(infoPost && infoPost.id === post.id ? null : post);
+  };
+
   const handleShare = async (post) => {
     if (navigator.share) {
       try {
@@ -203,48 +211,42 @@ const Timeline = ({ selectedTags }) => {
 
   return (
     <div>
-      {filteredPosts.map((post, index) => (
-        <div key={post.id} className="post-container">
-          <div className="post">
-            {post.coverImage && (
-              post.coverMimeType && post.coverMimeType.startsWith('video/') ? (
-                <div onClick={() => handlePostClick(post, index)}>
-                  <LazyLoad offset={500}>
-                    <video
-                      src={window.innerWidth <= 640 ? post.mobileCoverImage : post.laptopCoverImage}
-                      poster={post.coverImageThumbnail}
-                      preload="none"
-                      width="640"
-                      height="360"
-                    />
-                    <div className="play-button"></div>
-                  </LazyLoad>
-                </div>
-              ) : (
-                <LazyLoad offset={500}>
-                  <img
-                    src={window.innerWidth <= 640 ? post.mobileCoverImage : post.laptopCoverImage}
-                    alt="Cover"
-                    onClick={() => handlePostClick(post, index)}
-                    width="640"
-                    height="360"
-                  />
-                </LazyLoad>
-              )
-            )}
-            <div className="post-info">
-              <p className="post-date">{post.date.toDate().toLocaleString()}</p>
-              <p className="post-description">{post.description}</p>
-              <p className="post-project">
-                <a href="#" onClick={() => openProjectModal(post.project)}>
-                  {post.project}
-                </a>
-              </p>
-            </div>
+{filteredPosts.map((post, index) => (
+  <div key={post.id} className="post-container">
+    <div className="post">
+      <div className="post-image-container">
+        {post.coverImage && (
+          <LazyLoad offset={500}>
+            <img
+              src={window.innerWidth <= 640 ? post.mobileCoverImage : post.laptopCoverImage}
+              alt="Cover"
+              onClick={() => handlePostClick(post, index)}
+              className={`post-image ${infoPost && infoPost.id === post.id ? 'hidden' : ''}`}
+            />
+          </LazyLoad>
+        )}
+        {infoPost && infoPost.id === post.id && (
+          <div className={`post-info ${isDarkMode ? 'dark-mode' : 'light-mode'} show`}>
+            <p className="post-date">{post.date.toDate().toLocaleString()}</p>
+            <p className="post-description">{post.description}</p>
+            <p className="post-project">
+              <a href="#" onClick={(e) => {
+                e.stopPropagation();
+                openProjectModal(post.project);
+              }}>
+                {post.project}
+              </a>
+            </p>
           </div>
-        </div>
-      ))}
-
+        )}
+      </div>
+      <button className="info-button" onClick={() => handleInfoButtonClick(post)}>
+        <span>i</span>
+      </button>
+    </div>
+  </div>
+))}
+  
       {selectedPost && (
         <div className="modal">
           <div className="modal-content">
@@ -268,7 +270,7 @@ const Timeline = ({ selectedTags }) => {
           </div>
         </div>
       )}
-
+  
       {(fullScreenImage || fullScreenVideo || fullScreenLink) && (
         <div className="full-screen-modal" onClick={closeFullScreenContent}>
           <div className="full-screen-content-container">
@@ -292,7 +294,7 @@ const Timeline = ({ selectedTags }) => {
           </div>
         </div>
       )}
-
+  
       {selectedProject && (
         <ProjectModal
           project={selectedProject}
@@ -300,7 +302,7 @@ const Timeline = ({ selectedTags }) => {
           openFullScreenImage={openFullScreenImage}
         />
       )}
-
+  
       {loading && <LoadingIndicator />}
       {!loading && !hasMorePosts && <div className="no-more-posts">No more posts to load.</div>}
     </div>
